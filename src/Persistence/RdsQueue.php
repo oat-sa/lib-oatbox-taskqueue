@@ -18,10 +18,10 @@
  *               
  * 
  */
-namespace oat\taskqueue\Persistence;
+namespace oat\Taskqueue\Persistence;
 
 use oat\oatbox\service\ConfigurableService;
-use oat\taskqueue\JsonTask;
+use oat\Taskqueue\JsonTask;
 use oat\oatbox\task\Task;
 
 class RdsQueue extends ConfigurableService implements \IteratorAggregate

@@ -1,6 +1,6 @@
 <?php
 
-use oat\taskqueue\Action\InitRdsQueue;
+use oat\Taskqueue\Action\InitRdsQueue;
 $parms = $argv;
 array_shift($parms);
 

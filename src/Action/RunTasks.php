@@ -18,10 +18,10 @@
  *               
  * 
  */
-namespace oat\taskqueue\Action;
+namespace oat\Taskqueue\Action;
 
 use oat\oatbox\service\ConfigurableService;
-use oat\taskqueue\Persistence\RdsQueue;
+use oat\Taskqueue\Persistence\RdsQueue;
 use Doctrine\DBAL\Schema\SchemaException;
 use oat\oatbox\service\ServiceManager;
 use oat\oatbox\task\Queue;

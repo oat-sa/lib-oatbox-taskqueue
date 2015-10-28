@@ -18,7 +18,7 @@
  *               
  * 
  */
-namespace oat\taskqueue;
+namespace oat\Taskqueue;
 
 use oat\oatbox\service\ConfigurableService;
 use oat\oatbox\Configurable;
