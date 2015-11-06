@@ -1,0 +1,35 @@
+{
+	"name" : "oat-sa/lib-oatbox-taskqueue",
+	"description" : "oatbox task queue implementation",
+	"type" : "library",
+	"authors" : [
+		{
+			"name" : "Open Assessment Technologies S.A.",
+			"homepage" : "http://www.taotesting.com"
+		}
+	],
+	"support": {
+		"forum": "http://forum.taotesting.com",
+		"issues": "http://forge.taotesting.com"
+	},
+	"keywords" : [
+		"tao",
+		"oat",
+		"queue",
+		"computer-based-assessment"
+	],
+	"homepage" : "http://www.taotesting.com",
+	"license" : [
+		"GPL-2.0"
+	],
+	"require" : {
+		"php" : ">=5.3.2",
+        "aws/aws-sdk-php": "~2.6"
+	},
+	"minimum-stability" : "dev",
+    "autoload" : {
+        "psr-4" : {
+            "oat\\Taskqueue\\" : "src/"
+        }
+    }
+}
