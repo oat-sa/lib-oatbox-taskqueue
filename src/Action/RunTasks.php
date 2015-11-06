@@ -38,6 +38,7 @@ class RunTasks extends ConfigurableService implements Action
         $report = new \common_report_Report(\common_report_Report::TYPE_SUCCESS);
         foreach ($queue as $task) {
             $subReport = $runner->run($task);
+            $tasksRun++;
             $report->add($subReport);
         }
         
