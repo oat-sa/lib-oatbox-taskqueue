@@ -1,6 +1,8 @@
 <?php
 
 use oat\Taskqueue\Action\InitRdsQueue;
+use oat\oatbox\service\ServiceManager;
+use oat\oatbox\action\ActionService;
 $parms = $argv;
 array_shift($parms);
 
@@ -23,6 +25,7 @@ $persistenceId = array_shift($parms);
 
 $peristence = common_persistence_SqlPersistence::getPersistence($persistenceId);
 
-$factory = new InitRdsQueue();
-$report = $factory->__invoke(array($persistenceId));
-tao_helpers_report_Rendering::render($report);
+$actionService = ServiceManager::getServiceManager()->get(ActionService::SERVICE_ID);
+$action = $actionService->resolve(InitRdsQueue::class);
+$report = $action->__invoke(array($persistenceId));
+echo tao_helpers_report_Rendering::renderToCommandline($report);

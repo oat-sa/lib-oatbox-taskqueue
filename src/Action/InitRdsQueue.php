@@ -23,21 +23,26 @@ namespace oat\Taskqueue\Action;
 use oat\oatbox\service\ConfigurableService;
 use oat\Taskqueue\Persistence\RdsQueue;
 use Doctrine\DBAL\Schema\SchemaException;
-use oat\oatbox\service\ServiceManager;
 use oat\oatbox\task\Queue;
 use oat\oatbox\action\Action;
+use Zend\ServiceManager\ServiceLocatorAwareInterface;
+use Zend\ServiceManager\ServiceLocatorAwareTrait;
+use common_report_Report as Report;
 
-class InitRdsQueue implements Action
+class InitRdsQueue implements Action, ServiceLocatorAwareInterface
 {
+    use ServiceLocatorAwareTrait;
+    
     public function __invoke($params) {
         
-        if (!isset($params[0])) {
-            return new \common_report_Report(\common_report_Report::TYPE_ERROR, __('Usage: InitRdsQueue PERSISTENCE_ID'));
+        try {
+            $persistenceId = isset($params[0]) ? $params[0] : 'default';
+            $persistence = \common_persistence_Manager::getPersistence($persistenceId);
+        } catch (\common_Exception $e) {
+            $report = new Report(Report::TYPE_INFO, __('Usage: InitRdsQueue PERSISTENCE_ID'));
+            $report->add(new Report(Report::TYPE_ERROR, __('Persistence "%s" could not be loaded', $persistenceId)));
+            return $report;
         }
-        $persistenceId = $params[0];
-        $serviceManager = ServiceManager::getServiceManager();
-        
-        $persistence = \common_persistence_Manager::getPersistence($persistenceId);
         
         $schemaManager = $persistence->getDriver()->getSchemaManager();
         $schema = $schemaManager->createSchema();
@@ -66,8 +71,8 @@ class InitRdsQueue implements Action
         }
         
         $queue = new RdsQueue(array(RdsQueue::OPTION_PERSISTENCE => $persistenceId));
-        $serviceManager->register(Queue::CONFIG_ID, $queue);
+        $this->getServiceLocator()->register(Queue::CONFIG_ID, $queue);
         
-        return new \common_report_Report(\common_report_Report::TYPE_SUCCESS, __('Setup rds queue successfully'));
+        return new \common_report_Report(\common_report_Report::TYPE_SUCCESS, __('Setup rds queue successfully using persistence "%s"', $persistenceId));
     }
 }
