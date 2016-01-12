@@ -42,7 +42,8 @@ class RdsQueue extends ConfigurableService implements \IteratorAggregate
     
     const OPTION_PERSISTENCE = 'persistence';
     
-    public function createTask($actionId, $parameters) {
+    public function createTask($actionId, $parameters)
+    {
         
         $task = new JsonTask($actionId, $parameters);
         
@@ -65,7 +66,15 @@ class RdsQueue extends ConfigurableService implements \IteratorAggregate
         return $task;
     }
     
-    public function getIterator() {
+    public function updateTaskStatus($taskId, $stateId)
+    {
+        $platform = $this->getPersistence()->getPlatForm();
+        $statement = 'UPDATE '.self::QUEUE_TABLE_NAME.' SET '.self::QUEUE_STATUS.' = ? WHERE '.self::QUEUE_ID.' = ?';
+        $this->getPersistence()->exec($statement, array($stateId, $taskId));
+    }
+    
+    public function getIterator()
+    {
         return new FifoIterator($this->getPersistence());
     }
     
