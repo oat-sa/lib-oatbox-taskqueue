@@ -25,16 +25,11 @@ use oat\Taskqueue\Persistence\RdsQueue;
 use Doctrine\DBAL\Schema\SchemaException;
 use oat\oatbox\task\Queue;
 use oat\oatbox\action\Action;
-use Zend\ServiceManager\ServiceLocatorAwareInterface;
-use Zend\ServiceManager\ServiceLocatorAwareTrait;
 use common_report_Report as Report;
 
-class InitRdsQueue implements Action, ServiceLocatorAwareInterface
+class InitRdsQueue extends \common_ext_action_InstallAction
 {
-    use ServiceLocatorAwareTrait;
-    
     public function __invoke($params) {
-        
         try {
             $persistenceId = isset($params[0]) ? $params[0] : 'default';
             $persistence = \common_persistence_Manager::getPersistence($persistenceId);
@@ -53,12 +48,13 @@ class InitRdsQueue implements Action, ServiceLocatorAwareInterface
             $queueTable = $schema->createtable(RdsQueue::QUEUE_TABLE_NAME);
             $queueTable->addOption('engine', 'MyISAM');
             
-            $queueTable->addColumn(RdsQueue::QUEUE_ID, "integer",array("notnull" => true,"autoincrement" => true));
+            $queueTable->addColumn(RdsQueue::QUEUE_ID, "string",array("notnull" => true, "length" => 255));
             $queueTable->addColumn(RdsQueue::QUEUE_STATUS, "string",array("notnull" => true,"length" => 50));
             $queueTable->addColumn(RdsQueue::QUEUE_ADDED, "string",array("notnull" => true));
             $queueTable->addColumn(RdsQueue::QUEUE_UPDATED, "string",array("notnull" => true));
             $queueTable->addColumn(RdsQueue::QUEUE_OWNER, "string",array("notnull" => false, "length" => 255));
             $queueTable->addColumn(RdsQueue::QUEUE_TASK, "string",array("notnull" => true, "length" => 4000));
+            $queueTable->addColumn(RdsQueue::QUEUE_REPORT, "text", array("default" => null,"notnull" => false));
             $queueTable->setPrimaryKey(array(RdsQueue::QUEUE_ID));
         
             $queries = $persistence->getPlatform()->getMigrateSchemaSql($fromSchema, $schema);
@@ -69,8 +65,9 @@ class InitRdsQueue implements Action, ServiceLocatorAwareInterface
         } catch(SchemaException $e) {
             \common_Logger::i('Database Schema already up to date.');
         }
-        
+
         $queue = new RdsQueue(array(RdsQueue::OPTION_PERSISTENCE => $persistenceId));
+        $queue->setServiceLocator($this->getServiceLocator());
         $this->getServiceLocator()->register(Queue::CONFIG_ID, $queue);
         
         return new \common_report_Report(\common_report_Report::TYPE_SUCCESS, __('Setup rds queue successfully using persistence "%s"', $persistenceId));

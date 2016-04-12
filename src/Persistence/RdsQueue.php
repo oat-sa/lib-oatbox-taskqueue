@@ -36,6 +36,8 @@ class RdsQueue extends ConfigurableService implements \IteratorAggregate
     
     const QUEUE_STATUS = 'status';
     
+    const QUEUE_REPORT = 'report';
+    
     const QUEUE_ADDED = 'added';
     
     const QUEUE_UPDATED = 'updated';
@@ -49,11 +51,13 @@ class RdsQueue extends ConfigurableService implements \IteratorAggregate
         
         $platform = $this->getPersistence()->getPlatForm();
         $query = 'INSERT INTO '.self::QUEUE_TABLE_NAME.' ('
-            .self::QUEUE_OWNER.', '.self::QUEUE_TASK.', '.self::QUEUE_STATUS.', '.self::QUEUE_ADDED.', '.self::QUEUE_UPDATED.') '
-        	.'VALUES  (?, ?, ?, ?, ?)';
+            .self::QUEUE_ID.', '.self::QUEUE_OWNER.', '.self::QUEUE_TASK.', '.self::QUEUE_STATUS.', '.self::QUEUE_ADDED.', '.self::QUEUE_UPDATED.') '
+        	.'VALUES  (?, ?, ?, ?, ?, ?)';
         
         $persitence = $this->getPersistence();
+        $id = \common_Utils::getNewUri();
         $returnValue = $persitence->exec($query, array(
+            $id,
             \common_session_SessionManager::getSession()->getUser()->getIdentifier(),
             json_encode($task),
             Task::STATUS_CREATED,
@@ -61,16 +65,20 @@ class RdsQueue extends ConfigurableService implements \IteratorAggregate
             $platform->getNowExpression()
         ));
         
-        $task->setId($persitence->lastInsertId(self::QUEUE_TABLE_NAME));
+        $task->setId($id);
         
         return $task;
     }
     
-    public function updateTaskStatus($taskId, $stateId)
+    public function updateTaskStatus($taskId, $stateId, $report)
     {
         $platform = $this->getPersistence()->getPlatForm();
-        $statement = 'UPDATE '.self::QUEUE_TABLE_NAME.' SET '.self::QUEUE_STATUS.' = ? WHERE '.self::QUEUE_ID.' = ?';
-        $this->getPersistence()->exec($statement, array($stateId, $taskId));
+        $statement = 'UPDATE '.self::QUEUE_TABLE_NAME.' SET '.
+            self::QUEUE_STATUS.' = ?, '.
+            self::QUEUE_UPDATED.' = ?, '.
+            self::QUEUE_REPORT.' = ? '.
+            'WHERE '.self::QUEUE_ID.' = ?';
+        $this->getPersistence()->exec($statement, array($stateId, $platform->getNowExpression(), json_encode($report), $taskId));
     }
     
     public function getIterator()
