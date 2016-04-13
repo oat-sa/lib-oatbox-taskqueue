@@ -37,8 +37,7 @@ class AddTask extends ConfigurableService implements Action
      * @return \common_report_Report
      */
     public function __invoke($params) {
-        $action = $params[0];
-        unset($params[0]);
+        $action = array_shift($params);
         try {
             if (class_exists($action)) {
                 $instance = new $action();

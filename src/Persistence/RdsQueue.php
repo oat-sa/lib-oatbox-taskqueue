@@ -23,9 +23,8 @@ namespace oat\Taskqueue\Persistence;
 use oat\oatbox\service\ConfigurableService;
 use oat\Taskqueue\JsonTask;
 use oat\oatbox\task\Task;
-use oat\oatbox\task\Queue;
 
-class RdsQueue extends ConfigurableService implements \IteratorAggregate, Queue
+class RdsQueue extends ConfigurableService implements \IteratorAggregate
 {
     const QUEUE_TABLE_NAME = 'queue';
     
@@ -37,23 +36,28 @@ class RdsQueue extends ConfigurableService implements \IteratorAggregate, Queue
     
     const QUEUE_STATUS = 'status';
     
+    const QUEUE_REPORT = 'report';
+    
     const QUEUE_ADDED = 'added';
     
     const QUEUE_UPDATED = 'updated';
     
     const OPTION_PERSISTENCE = 'persistence';
     
-    public function createTask($actionId, $parameters) {
+    public function createTask($actionId, $parameters)
+    {
         
         $task = new JsonTask($actionId, $parameters);
         
         $platform = $this->getPersistence()->getPlatForm();
         $query = 'INSERT INTO '.self::QUEUE_TABLE_NAME.' ('
-            .self::QUEUE_OWNER.', '.self::QUEUE_TASK.', '.self::QUEUE_STATUS.', '.self::QUEUE_ADDED.', '.self::QUEUE_UPDATED.') '
-            .'VALUES  (?, ?, ?, ?, ?)';
-
-        $persistence = $this->getPersistence();
-        $persistence->exec($query, array(
+            .self::QUEUE_ID.', '.self::QUEUE_OWNER.', '.self::QUEUE_TASK.', '.self::QUEUE_STATUS.', '.self::QUEUE_ADDED.', '.self::QUEUE_UPDATED.') '
+        	.'VALUES  (?, ?, ?, ?, ?, ?)';
+        
+        $persitence = $this->getPersistence();
+        $id = \common_Utils::getNewUri();
+        $returnValue = $persitence->exec($query, array(
+            $id,
             \common_session_SessionManager::getSession()->getUser()->getIdentifier(),
             json_encode($task),
             Task::STATUS_CREATED,
@@ -61,32 +65,27 @@ class RdsQueue extends ConfigurableService implements \IteratorAggregate, Queue
             $platform->getNowExpression()
         ));
         
-        $task->setId($persistence->lastInsertId(self::QUEUE_TABLE_NAME));
+        $task->setId($id);
         
         return $task;
     }
     
-    public function getIterator() {
+    public function updateTaskStatus($taskId, $stateId, $report)
+    {
+        $platform = $this->getPersistence()->getPlatForm();
+        $statement = 'UPDATE '.self::QUEUE_TABLE_NAME.' SET '.
+            self::QUEUE_STATUS.' = ?, '.
+            self::QUEUE_UPDATED.' = ?, '.
+            self::QUEUE_REPORT.' = ? '.
+            'WHERE '.self::QUEUE_ID.' = ?';
+        $this->getPersistence()->exec($statement, array($stateId, $platform->getNowExpression(), json_encode($report), $taskId));
+    }
+    
+    public function getIterator()
+    {
         return new FifoIterator($this->getPersistence());
     }
-
-    /**
-     * @param $taskId
-     * @param $status
-     * @return mixed
-     */
-    public function updateTaskStatus($taskId, $status)
-    {
-        $persistence = $this->getPersistence();
-        $query = 'UPDATE ' . self::QUEUE_TABLE_NAME . ' set ' . self::QUEUE_STATUS . '=? ' .
-                 'WHERE ' . self::QUEUE_ID . '=?';
-
-        return $persistence->exec($query, [
-            $status,
-            $taskId,
-        ]);
-    }
-
+    
     /**
      * @return \common_persistence_SqlPersistence
      */

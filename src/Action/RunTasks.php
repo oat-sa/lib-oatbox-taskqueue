@@ -27,22 +27,32 @@ use oat\oatbox\service\ServiceManager;
 use oat\oatbox\task\Queue;
 use oat\oatbox\action\Action;
 use oat\oatbox\task\TaskRunner;
+use common_report_Report as Report;
 
 class RunTasks extends ConfigurableService implements Action
 {
     public function __invoke($params) {
         
-        $tasksRun = 0;
+        $statistics = array();
         $queue = $this->getServiceManager()->get(Queue::CONFIG_ID);
         $runner = new TaskRunner();
-        $report = new \common_report_Report(\common_report_Report::TYPE_SUCCESS);
+        $report = new Report(Report::TYPE_SUCCESS);
         foreach ($queue as $task) {
             $subReport = $runner->run($task);
-            $tasksRun++;
+            $statistics[$subReport->getType()] = isset($statistics[$subReport->getType()])
+                ? $statistics[$subReport->getType()] + 1
+                : 1;
             $report->add($subReport);
         }
         
-        $report->setMessage(__('Successfully ran %s tasks:', $tasksRun));
+        if (empty($statistics)) {
+            $report = new Report(Report::TYPE_INFO, __('No tasks to run'));
+        } else {
+            if (isset($statistics[Report::TYPE_ERROR]) || isset($statistics[Report::TYPE_WARNING])) {
+                $report->setType(Report::TYPE_WARNING);
+            }
+            $report->setMessage(__('Ran %s task(s):', array_sum($statistics)));
+        }
         return $report; 
     }
 }
