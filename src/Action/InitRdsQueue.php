@@ -44,10 +44,10 @@ class InitRdsQueue extends \common_ext_action_InstallAction
         $fromSchema = clone $schema;
         
         try {
-        
+
             $queueTable = $schema->createtable(RdsQueue::QUEUE_TABLE_NAME);
             $queueTable->addOption('engine', 'MyISAM');
-            
+
             $queueTable->addColumn(RdsQueue::QUEUE_ID, "string",array("notnull" => true, "length" => 255));
             $queueTable->addColumn(RdsQueue::QUEUE_STATUS, "string",array("notnull" => true,"length" => 50));
             $queueTable->addColumn(RdsQueue::QUEUE_ADDED, "string",array("notnull" => true));
@@ -56,12 +56,12 @@ class InitRdsQueue extends \common_ext_action_InstallAction
             $queueTable->addColumn(RdsQueue::QUEUE_TASK, "string",array("notnull" => true, "length" => 4000));
             $queueTable->addColumn(RdsQueue::QUEUE_REPORT, "text", array("default" => null,"notnull" => false));
             $queueTable->setPrimaryKey(array(RdsQueue::QUEUE_ID));
-        
+
             $queries = $persistence->getPlatform()->getMigrateSchemaSql($fromSchema, $schema);
             foreach ($queries as $query) {
                 $persistence->exec($query);
             }
-            
+
         } catch(SchemaException $e) {
             \common_Logger::i('Database Schema already up to date.');
         }
