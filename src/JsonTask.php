@@ -57,10 +57,13 @@ class JsonTask extends Configurable implements \JsonSerializable, Task
     {
         return $this->params;
     }
-    
-    public function setParameters()
+
+    /**
+     * @param array $params
+     */
+    public function setParameters(array $params)
     {
-        
+        $this->params = $params;
     }
     
     public function jsonSerialize()

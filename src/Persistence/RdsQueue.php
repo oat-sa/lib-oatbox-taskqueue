@@ -23,8 +23,9 @@ namespace oat\Taskqueue\Persistence;
 use oat\oatbox\service\ConfigurableService;
 use oat\Taskqueue\JsonTask;
 use oat\oatbox\task\Task;
+use oat\oatbox\task\Queue;
 
-class RdsQueue extends ConfigurableService implements \IteratorAggregate
+class RdsQueue extends ConfigurableService implements \IteratorAggregate, Queue
 {
     const QUEUE_TABLE_NAME = 'queue';
     
@@ -49,10 +50,10 @@ class RdsQueue extends ConfigurableService implements \IteratorAggregate
         $platform = $this->getPersistence()->getPlatForm();
         $query = 'INSERT INTO '.self::QUEUE_TABLE_NAME.' ('
             .self::QUEUE_OWNER.', '.self::QUEUE_TASK.', '.self::QUEUE_STATUS.', '.self::QUEUE_ADDED.', '.self::QUEUE_UPDATED.') '
-        	.'VALUES  (?, ?, ?, ?, ?)';
-        
-        $persitence = $this->getPersistence();
-        $returnValue = $persitence->exec($query, array(
+            .'VALUES  (?, ?, ?, ?, ?)';
+
+        $persistence = $this->getPersistence();
+        $persistence->exec($query, array(
             \common_session_SessionManager::getSession()->getUser()->getIdentifier(),
             json_encode($task),
             Task::STATUS_CREATED,
@@ -60,7 +61,7 @@ class RdsQueue extends ConfigurableService implements \IteratorAggregate
             $platform->getNowExpression()
         ));
         
-        $task->setId($persitence->lastInsertId(self::QUEUE_TABLE_NAME));
+        $task->setId($persistence->lastInsertId(self::QUEUE_TABLE_NAME));
         
         return $task;
     }
@@ -68,7 +69,24 @@ class RdsQueue extends ConfigurableService implements \IteratorAggregate
     public function getIterator() {
         return new FifoIterator($this->getPersistence());
     }
-    
+
+    /**
+     * @param $taskId
+     * @param $status
+     * @return mixed
+     */
+    public function updateTaskStatus($taskId, $status)
+    {
+        $persistence = $this->getPersistence();
+        $query = 'UPDATE ' . self::QUEUE_TABLE_NAME . ' set ' . self::QUEUE_STATUS . '=? ' .
+                 'WHERE ' . self::QUEUE_ID . '=?';
+
+        return $persistence->exec($query, [
+            $status,
+            $taskId,
+        ]);
+    }
+
     /**
      * @return \common_persistence_SqlPersistence
      */

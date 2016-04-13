@@ -33,8 +33,8 @@ use oat\oatbox\action\Action;
 class AddTask extends ConfigurableService implements Action
 {
     /**
-     * 
      * @param array $params
+     * @return \common_report_Report
      */
     public function __invoke($params) {
         $action = $params[0];
