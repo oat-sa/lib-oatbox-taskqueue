@@ -23,8 +23,9 @@ namespace oat\Taskqueue\Persistence;
 use oat\oatbox\service\ConfigurableService;
 use oat\Taskqueue\JsonTask;
 use oat\oatbox\task\Task;
+use oat\oatbox\task\Queue;
 
-class RdsQueue extends ConfigurableService implements \IteratorAggregate
+class RdsQueue extends ConfigurableService implements Queue
 {
     const QUEUE_TABLE_NAME = 'queue';
     
@@ -43,11 +44,16 @@ class RdsQueue extends ConfigurableService implements \IteratorAggregate
     const QUEUE_UPDATED = 'updated';
     
     const OPTION_PERSISTENCE = 'persistence';
-    
-    public function createTask($actionId, $parameters)
+
+    /**
+     * @param $action
+     * @param $parameters
+     * @return JsonTask
+     * @throws \common_exception_Error
+     */
+    public function createTask($action, $parameters)
     {
-        
-        $task = new JsonTask($actionId, $parameters);
+        $task = new JsonTask($action, $parameters);
         
         $platform = $this->getPersistence()->getPlatForm();
         $query = 'INSERT INTO '.self::QUEUE_TABLE_NAME.' ('

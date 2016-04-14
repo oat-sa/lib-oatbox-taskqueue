@@ -48,7 +48,7 @@ class AddTask extends ConfigurableService implements Action
                 $invocable = $this->getServiceManager()->get($action);
             }
             $queue = $this->getServiceManager()->get(Queue::CONFIG_ID);
-            $task = $queue->createTask($action, $params);
+            $task = $queue->createTask($invocable, $params);
 	        $report = new \common_report_Report(\common_report_Report::TYPE_SUCCESS, __('Created task "%s" and added it to the queue', $task->getId()));
         } catch (ServiceNotFoundException $e) {
 	        $report = new \common_report_Report(\common_report_Report::TYPE_ERROR, __('Action "%s" not found.', $e->getServiceKey()));
