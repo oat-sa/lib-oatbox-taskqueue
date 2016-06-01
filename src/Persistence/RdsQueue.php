@@ -23,8 +23,9 @@ namespace oat\Taskqueue\Persistence;
 use oat\oatbox\service\ConfigurableService;
 use oat\Taskqueue\JsonTask;
 use oat\oatbox\task\Task;
+use oat\oatbox\task\Queue;
 
-class RdsQueue extends ConfigurableService implements \IteratorAggregate
+class RdsQueue extends ConfigurableService implements Queue
 {
     const QUEUE_TABLE_NAME = 'queue';
     
@@ -43,20 +44,25 @@ class RdsQueue extends ConfigurableService implements \IteratorAggregate
     const QUEUE_UPDATED = 'updated';
     
     const OPTION_PERSISTENCE = 'persistence';
-    
-    public function createTask($actionId, $parameters)
+
+    /**
+     * @param $action
+     * @param $parameters
+     * @return JsonTask
+     * @throws \common_exception_Error
+     */
+    public function createTask($action, $parameters)
     {
-        
-        $task = new JsonTask($actionId, $parameters);
+        $task = new JsonTask($action, $parameters);
         
         $platform = $this->getPersistence()->getPlatForm();
         $query = 'INSERT INTO '.self::QUEUE_TABLE_NAME.' ('
             .self::QUEUE_ID.', '.self::QUEUE_OWNER.', '.self::QUEUE_TASK.', '.self::QUEUE_STATUS.', '.self::QUEUE_ADDED.', '.self::QUEUE_UPDATED.') '
-        	.'VALUES  (?, ?, ?, ?, ?, ?)';
+            .'VALUES  (?, ?, ?, ?, ?, ?)';
         
-        $persitence = $this->getPersistence();
+        $persistence = $this->getPersistence();
         $id = \common_Utils::getNewUri();
-        $returnValue = $persitence->exec($query, array(
+        $persistence->exec($query, array(
             $id,
             \common_session_SessionManager::getSession()->getUser()->getIdentifier(),
             json_encode($task),
@@ -69,8 +75,13 @@ class RdsQueue extends ConfigurableService implements \IteratorAggregate
         
         return $task;
     }
-    
-    public function updateTaskStatus($taskId, $stateId, $report)
+
+    /**
+     * @param string $taskId
+     * @param $stateId
+     * @param string $report
+     */
+    public function updateTaskStatus($taskId, $stateId, $report = '')
     {
         $platform = $this->getPersistence()->getPlatForm();
         $statement = 'UPDATE '.self::QUEUE_TABLE_NAME.' SET '.

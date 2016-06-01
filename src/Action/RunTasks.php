@@ -32,7 +32,7 @@ use common_report_Report as Report;
 class RunTasks extends ConfigurableService implements Action
 {
     public function __invoke($params) {
-        
+
         $statistics = array();
         $queue = $this->getServiceManager()->get(Queue::CONFIG_ID);
         $runner = new TaskRunner();

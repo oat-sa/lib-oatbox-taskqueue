@@ -107,8 +107,13 @@ class JsonTask extends Configurable implements \JsonSerializable, Task
      */
     public function jsonSerialize()
     {
+        $invocable = $this->invocable;
+        if (is_object($invocable) && !$invocable instanceof \JsonSerializable) {
+            $invocable = get_class($invocable);
+        }
+
         return array(
-        	'invocable' => $this->invocable,
+        	'invocable' => $invocable,
             'params'    => $this->params
         );
     }
