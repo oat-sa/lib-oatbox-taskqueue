@@ -48,10 +48,11 @@ class RdsQueue extends ConfigurableService implements Queue
     /**
      * @param $action
      * @param $parameters
+     * @param boolean $repeatedly Whether task created repeatedly (for example when execution of task was failed and task puts to the queue again).
      * @return JsonTask
      * @throws \common_exception_Error
      */
-    public function createTask($action, $parameters)
+    public function createTask($action, $parameters, $repeatedly = false)
     {
         $task = new JsonTask($action, $parameters);
         
