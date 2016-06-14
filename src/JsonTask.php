@@ -32,45 +32,98 @@ class JsonTask extends Configurable implements \JsonSerializable, Task
     
     private $params;
     
+    private $status;
+    
     public function __construct($invocable, $params)
     {
         $this->invocable = $invocable;
         $this->params = $params;
     }
     
+    /**
+     * (non-PHPdoc)
+     * @see \oat\oatbox\task\Task::getId()
+     */
     public function getId()
     {
         return $this->id;
     }
     
+    /**
+     * Setter used during construction
+     * @param string $id
+     */
     public function setId($id)
     {
         $this->id = $id;
     }
     
+    /**
+     * (non-PHPdoc)
+     * @see \oat\oatbox\task\Task::getStatus()
+     */
+    public function getStatus()
+    {
+        return $this->status;
+    }
+    
+    /**
+     * Setter used during construction
+     * @param string $status
+     */
+    public function setStatus($status)
+    {
+        $this->status = $status;
+    }
+    
+    /**
+     * (non-PHPdoc)
+     * @see \oat\oatbox\task\Task::getInvocable()
+     */
     public function getInvocable()
     {
         return $this->invocable;
     }
     
+    /**
+     * (non-PHPdoc)
+     * @see \oat\oatbox\task\Task::getParameters()
+     */
     public function getParameters()
     {
         return $this->params;
     }
     
-    public function setParameters()
+    public function setParameters(array $params)
     {
-        
+        $this->params = $params;
     }
+
+    // Serialization
     
+    /**
+     * (non-PHPdoc)
+     * @see JsonSerializable::jsonSerialize()
+     */
     public function jsonSerialize()
     {
+        $invocable = $this->invocable;
+        if (is_object($invocable) && !$invocable instanceof \JsonSerializable) {
+            $invocable = get_class($invocable);
+        }
+
         return array(
-        	'invocable' => $this->invocable,
+        	'invocable' => $invocable,
             'params'    => $this->params
         );
     }
     
+    /**
+     * Restore a task
+     * 
+     * @param string $json
+     * @return \oat\Taskqueue\JsonTask
+     */
     public static function restore($json)
     {
         $data = json_decode($json, true);

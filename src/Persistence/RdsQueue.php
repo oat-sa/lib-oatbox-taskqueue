@@ -23,8 +23,9 @@ namespace oat\Taskqueue\Persistence;
 use oat\oatbox\service\ConfigurableService;
 use oat\Taskqueue\JsonTask;
 use oat\oatbox\task\Task;
+use oat\oatbox\task\Queue;
 
-class RdsQueue extends ConfigurableService implements \IteratorAggregate
+class RdsQueue extends ConfigurableService implements Queue
 {
     const QUEUE_TABLE_NAME = 'queue';
     
@@ -36,23 +37,34 @@ class RdsQueue extends ConfigurableService implements \IteratorAggregate
     
     const QUEUE_STATUS = 'status';
     
+    const QUEUE_REPORT = 'report';
+    
     const QUEUE_ADDED = 'added';
     
     const QUEUE_UPDATED = 'updated';
     
     const OPTION_PERSISTENCE = 'persistence';
-    
-    public function createTask($actionId, $parameters) {
-        
-        $task = new JsonTask($actionId, $parameters);
+
+    /**
+     * @param $action
+     * @param $parameters
+     * @param boolean $repeatedly Whether task created repeatedly (for example when execution of task was failed and task puts to the queue again).
+     * @return JsonTask
+     * @throws \common_exception_Error
+     */
+    public function createTask($action, $parameters, $repeatedly = false)
+    {
+        $task = new JsonTask($action, $parameters);
         
         $platform = $this->getPersistence()->getPlatForm();
         $query = 'INSERT INTO '.self::QUEUE_TABLE_NAME.' ('
-            .self::QUEUE_OWNER.', '.self::QUEUE_TASK.', '.self::QUEUE_STATUS.', '.self::QUEUE_ADDED.', '.self::QUEUE_UPDATED.') '
-        	.'VALUES  (?, ?, ?, ?, ?)';
+            .self::QUEUE_ID.', '.self::QUEUE_OWNER.', '.self::QUEUE_TASK.', '.self::QUEUE_STATUS.', '.self::QUEUE_ADDED.', '.self::QUEUE_UPDATED.') '
+            .'VALUES  (?, ?, ?, ?, ?, ?)';
         
-        $persitence = $this->getPersistence();
-        $returnValue = $persitence->exec($query, array(
+        $persistence = $this->getPersistence();
+        $id = \common_Utils::getNewUri();
+        $persistence->exec($query, array(
+            $id,
             \common_session_SessionManager::getSession()->getUser()->getIdentifier(),
             json_encode($task),
             Task::STATUS_CREATED,
@@ -60,12 +72,29 @@ class RdsQueue extends ConfigurableService implements \IteratorAggregate
             $platform->getNowExpression()
         ));
         
-        $task->setId($persitence->lastInsertId(self::QUEUE_TABLE_NAME));
+        $task->setId($id);
         
         return $task;
     }
+
+    /**
+     * @param string $taskId
+     * @param $stateId
+     * @param string $report
+     */
+    public function updateTaskStatus($taskId, $stateId, $report = '')
+    {
+        $platform = $this->getPersistence()->getPlatForm();
+        $statement = 'UPDATE '.self::QUEUE_TABLE_NAME.' SET '.
+            self::QUEUE_STATUS.' = ?, '.
+            self::QUEUE_UPDATED.' = ?, '.
+            self::QUEUE_REPORT.' = ? '.
+            'WHERE '.self::QUEUE_ID.' = ?';
+        $this->getPersistence()->exec($statement, array($stateId, $platform->getNowExpression(), json_encode($report), $taskId));
+    }
     
-    public function getIterator() {
+    public function getIterator()
+    {
         return new FifoIterator($this->getPersistence());
     }
     

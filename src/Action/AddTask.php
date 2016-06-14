@@ -33,12 +33,11 @@ use oat\oatbox\action\Action;
 class AddTask extends ConfigurableService implements Action
 {
     /**
-     * 
      * @param array $params
+     * @return \common_report_Report
      */
     public function __invoke($params) {
-        $action = $params[0];
-        unset($params[0]);
+        $action = array_shift($params);
         try {
             if (class_exists($action)) {
                 $instance = new $action();
@@ -49,7 +48,7 @@ class AddTask extends ConfigurableService implements Action
                 $invocable = $this->getServiceManager()->get($action);
             }
             $queue = $this->getServiceManager()->get(Queue::CONFIG_ID);
-            $task = $queue->createTask($action, $params);
+            $task = $queue->createTask($invocable, $params);
 	        $report = new \common_report_Report(\common_report_Report::TYPE_SUCCESS, __('Created task "%s" and added it to the queue', $task->getId()));
         } catch (ServiceNotFoundException $e) {
 	        $report = new \common_report_Report(\common_report_Report::TYPE_ERROR, __('Action "%s" not found.', $e->getServiceKey()));
