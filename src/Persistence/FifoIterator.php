@@ -26,7 +26,6 @@ use oat\oatbox\task\Task;
 
 class FifoIterator extends \common_persistence_sql_QueryIterator
 {
-    protected $params;
 
     public function __construct($persistence)
     {
