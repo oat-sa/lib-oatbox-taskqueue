@@ -39,12 +39,18 @@ class FifoIterator extends \common_persistence_sql_QueryIterator
             $ids[] = $data[RdsQueue::QUEUE_ID];
         }
 
-        $query = 'select * from '.RdsQueue::QUEUE_TABLE_NAME.
-            ' WHERE '.RdsQueue::QUEUE_STATUS.' = ? AND '.RdsQueue::QUEUE_ID.
-            ' IN ('.implode(',', array_fill(0, count($ids), '?')).')'.
-            ' ORDER BY '.RdsQueue::QUEUE_ADDED;
+        if (empty($ids)) {
+            //empty result query
+            $query = 'select * from '.RdsQueue::QUEUE_TABLE_NAME.' WHERE false';
+            $params = [];
+        } else {
+            $query = 'select * from '.RdsQueue::QUEUE_TABLE_NAME.
+                ' WHERE '.RdsQueue::QUEUE_STATUS.' = ? AND '.RdsQueue::QUEUE_ID.
+                ' IN ('.implode(',', array_fill(0, count($ids), '?')).')'.
+                ' ORDER BY '.RdsQueue::QUEUE_ADDED;
 
-        $params = array_merge($params, $ids);
+            $params = array_merge($params, $ids);
+        }
 
         parent::__construct($persistence, $query, $params);
     }
