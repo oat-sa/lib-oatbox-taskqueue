@@ -48,7 +48,7 @@ class JsonTask extends Configurable implements \JsonSerializable, Task
     {
         return $this->id;
     }
-    
+
     /**
      * Setter used during construction
      * @param string $id
@@ -57,7 +57,7 @@ class JsonTask extends Configurable implements \JsonSerializable, Task
     {
         $this->id = $id;
     }
-    
+
     /**
      * (non-PHPdoc)
      * @see \oat\oatbox\task\Task::getStatus()
