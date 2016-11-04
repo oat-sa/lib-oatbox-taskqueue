@@ -95,7 +95,7 @@ class RdsQueue extends ConfigurableService implements Queue
     
     public function getIterator()
     {
-        return new FifoIterator($this->getPersistence());
+        return new QueueIterator($this->getPersistence());
     }
     
     /**
