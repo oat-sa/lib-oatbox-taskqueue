@@ -201,7 +201,7 @@ class QueueIteratorTest extends PHPUnit_Framework_TestCase
             [
                 RdsQueue::QUEUE_ID => 'http://sample/first.rdf#i14743578724540002_test_record',
                 RdsQueue::QUEUE_STATUS => Task::STATUS_CREATED,
-                RdsQueue::QUEUE_ADDED => 1,
+                RdsQueue::QUEUE_ADDED => 2,
                 RdsQueue::QUEUE_UPDATED => 0,
                 RdsQueue::QUEUE_OWNER => 'http://sample/first.rdf#i1474293333684066',
                 RdsQueue::QUEUE_TASK => '{"invocable":"","params":[]}',
@@ -209,7 +209,7 @@ class QueueIteratorTest extends PHPUnit_Framework_TestCase
             [
                 RdsQueue::QUEUE_ID => 'http://sample/first.rdf#i14743578724540003_test_record',
                 RdsQueue::QUEUE_STATUS => Task::STATUS_FINISHED,
-                RdsQueue::QUEUE_ADDED => 2,
+                RdsQueue::QUEUE_ADDED => 3,
                 RdsQueue::QUEUE_UPDATED => 0,
                 RdsQueue::QUEUE_OWNER => 'http://sample/first.rdf#i1474293333684066',
                 RdsQueue::QUEUE_TASK => '{"invocable":"","params":[]}',
@@ -217,7 +217,7 @@ class QueueIteratorTest extends PHPUnit_Framework_TestCase
             [
                 RdsQueue::QUEUE_ID => 'http://sample/first.rdf#i14743578724540004_test_record',
                 RdsQueue::QUEUE_STATUS => Task::STATUS_CREATED,
-                RdsQueue::QUEUE_ADDED => 3,
+                RdsQueue::QUEUE_ADDED => 4,
                 RdsQueue::QUEUE_UPDATED => 0,
                 RdsQueue::QUEUE_OWNER => 'http://sample/first.rdf#i1474293333684066',
                 RdsQueue::QUEUE_TASK => '{"invocable":"","params":[]}',
