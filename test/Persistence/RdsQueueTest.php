@@ -101,6 +101,7 @@ class RdsQueueTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($createdTask->getId(), $task->getId());
         $this->assertEquals($createdTask->getStatus(), $task->getStatus());
         $this->deleteTask($task->getId());
+        $this->assertEquals(null, $queue->getTask('wrongId'));
     }
 
     protected function deleteTask($id)

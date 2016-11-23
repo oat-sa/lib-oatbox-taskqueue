@@ -108,15 +108,18 @@ class RdsQueue extends ConfigurableService implements Queue
     /**
      * Get task instance by id
      * @param $taskId
-     * @return JsonTask
+     * @return null|JsonTask
      */
     public function getTask($taskId)
     {
+        $task = null;
         $statement = 'SELECT * FROM ' . self::QUEUE_TABLE_NAME . ' ' .
             'WHERE ' . self::QUEUE_ID . ' = ?';
         $query = $this->getPersistence()->query($statement, array($taskId));
         $data = $query->fetch(\PDO::FETCH_ASSOC);
-        $task = JsonTask::restore($data[self::QUEUE_TASK]);
+        if ($data) {
+            $task = JsonTask::restore($data[self::QUEUE_TASK]);
+        }
         return $task;
     }
 
