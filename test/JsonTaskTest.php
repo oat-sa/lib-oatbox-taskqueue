@@ -95,10 +95,17 @@ class JsonTaskTest extends PHPUnit_Framework_TestCase
     {
         $params = ['foo' => 'bar', 2, 'three'];
         $task = new JsonTask('invocable/Action', $params);
+        $task->setStatus(JsonTask::STATUS_CREATED);
+        $task->setId(1);
+        $task->setReport('report');
+
         $serialized = json_encode($task);
         $unserialized = json_decode($serialized, true);
         $this->assertEquals('invocable/Action', $unserialized['invocable']);
         $this->assertEquals($params, $unserialized['params']);
+        $this->assertEquals(1, $unserialized['id']);
+        $this->assertEquals('report', $unserialized['report']);
+        $this->assertEquals(JsonTask::STATUS_CREATED, $unserialized['status']);
 
         $task = new JsonTask(new TestAction(), $params);
 
@@ -112,11 +119,19 @@ class JsonTaskTest extends PHPUnit_Framework_TestCase
     {
         $params = ['foo' => 'bar', 2, 'three'];
         $task = new JsonTask(new TestAction(), $params);
+        $task->setStatus(JsonTask::STATUS_CREATED);
+        $task->setId(1);
+        $task->setReport('report');
+
+
         $serialized = json_encode($task);
         $restoredTask = JsonTask::restore($serialized);
         $this->assertTrue($restoredTask instanceof JsonTask);
         $this->assertEquals($params, $restoredTask->getParameters());
         $this->assertEquals('TestAction', $restoredTask->getInvocable());
+        $this->assertEquals(1, $restoredTask->getId());
+        $this->assertEquals('report', $restoredTask->getReport());
+        $this->assertEquals(JsonTask::STATUS_CREATED, $restoredTask->getStatus());
     }
 }
 

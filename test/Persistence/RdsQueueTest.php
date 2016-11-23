@@ -46,7 +46,6 @@ class RdsQueueTest extends PHPUnit_Framework_TestCase
         $params = ['foo' => 'bar', 2, 'three'];
 
         $task = $queue->createTask('invocable/Action', $params);
-
         $taskId = $task->getId();
 
         $this->assertTrue($task instanceof JsonTask);
@@ -54,6 +53,7 @@ class RdsQueueTest extends PHPUnit_Framework_TestCase
 
         $taskData = $this->getTaskData($taskId)[0];
         $this->assertEquals($taskId, $taskData[RdsQueue::QUEUE_ID]);
+        $this->assertEquals($task->getStatus(), $taskData[RdsQueue::QUEUE_STATUS]);
         $this->assertEquals(JsonTask::STATUS_CREATED, $taskData[RdsQueue::QUEUE_STATUS]);
         $this->assertRegExp('/\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}/', $taskData[RdsQueue::QUEUE_ADDED]);
         $this->assertRegExp('/\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}/', $taskData[RdsQueue::QUEUE_UPDATED]);
@@ -66,18 +66,20 @@ class RdsQueueTest extends PHPUnit_Framework_TestCase
     {
         $queue = $this->getInstance();
         $params = ['foo' => 'bar', 2, 'three'];
+        $report = 'test report';
 
-        $task = $queue->createTask('invocable/Action', $params);
-        $taskId = $task->getId();
-        $taskData = $this->getTaskData($taskId)[0];
+        $createdTask = $queue->createTask('invocable/Action', $params);
+        $taskId = $createdTask->getId();
+        $task = $queue->getTask($taskId);
 
-        $this->assertEquals(JsonTask::STATUS_CREATED, $taskData[RdsQueue::QUEUE_STATUS]);
+        $this->assertEquals(JsonTask::STATUS_CREATED, $task->getStatus());
 
-        $queue->updateTaskStatus($taskId, JsonTask::STATUS_FINISHED);
+        $queue->updateTaskStatus($task->getId(), JsonTask::STATUS_FINISHED, $report);
 
-        $taskData = $this->getTaskData($taskId)[0];
+        $task = $queue->getTask($taskId);
 
-        $this->assertEquals(JsonTask::STATUS_FINISHED, $taskData[RdsQueue::QUEUE_STATUS]);
+        $this->assertEquals(JsonTask::STATUS_FINISHED, $task->getStatus());
+        $this->assertEquals($report, $task->getReport());
 
         $this->deleteTask($taskId);
     }
@@ -86,7 +88,19 @@ class RdsQueueTest extends PHPUnit_Framework_TestCase
     {
         $queue = $this->getInstance();
         $iterator = $queue->getIterator();
-        $this->assertTrue($iterator instanceof \Iterator);
+        $this->assertTrue($iterator instanceof \common_persistence_sql_QueryIterator);
+    }
+
+    public function testGetTask()
+    {
+        $queue = $this->getInstance();
+        $params = ['foo' => 'bar', 2, 'three'];
+        $createdTask = $queue->createTask('invocable/Action', $params);
+        $task = $queue->getTask($createdTask->getId());
+        $this->assertTrue($task instanceof JsonTask);
+        $this->assertEquals($createdTask->getId(), $task->getId());
+        $this->assertEquals($createdTask->getStatus(), $task->getStatus());
+        $this->deleteTask($task->getId());
     }
 
     protected function deleteTask($id)
