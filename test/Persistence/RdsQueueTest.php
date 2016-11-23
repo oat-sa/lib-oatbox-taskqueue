@@ -88,7 +88,7 @@ class RdsQueueTest extends PHPUnit_Framework_TestCase
     {
         $queue = $this->getInstance();
         $iterator = $queue->getIterator();
-        $this->assertTrue($iterator instanceof \common_persistence_sql_QueryIterator);
+        $this->assertTrue($iterator instanceof \Iterator);
     }
 
     public function testGetTask()
