@@ -55,25 +55,25 @@ class RdsQueue extends ConfigurableService implements Queue
     public function createTask($action, $parameters, $repeatedly = false)
     {
         $task = new JsonTask($action, $parameters);
-        
+        $id = \common_Utils::getNewUri();
+        $task->setId($id);
+        $task->setStatus(Task::STATUS_CREATED);
+
         $platform = $this->getPersistence()->getPlatForm();
         $query = 'INSERT INTO '.self::QUEUE_TABLE_NAME.' ('
             .self::QUEUE_ID.', '.self::QUEUE_OWNER.', '.self::QUEUE_TASK.', '.self::QUEUE_STATUS.', '.self::QUEUE_ADDED.', '.self::QUEUE_UPDATED.') '
             .'VALUES  (?, ?, ?, ?, ?, ?)';
-        
+
         $persistence = $this->getPersistence();
-        $id = \common_Utils::getNewUri();
         $persistence->exec($query, array(
-            $id,
+            $task->getId(),
             \common_session_SessionManager::getSession()->getUser()->getIdentifier(),
             json_encode($task),
-            Task::STATUS_CREATED,
+            $task->getStatus(),
             $platform->getNowExpression(),
             $platform->getNowExpression()
         ));
-        
-        $task->setId($id);
-        
+
         return $task;
     }
 
@@ -84,18 +84,48 @@ class RdsQueue extends ConfigurableService implements Queue
      */
     public function updateTaskStatus($taskId, $stateId, $report = '')
     {
+        $task = $this->getTask($taskId);
+        $task->setReport($report);
+        $task->setStatus($stateId);
+
         $platform = $this->getPersistence()->getPlatForm();
         $statement = 'UPDATE '.self::QUEUE_TABLE_NAME.' SET '.
             self::QUEUE_STATUS.' = ?, '.
             self::QUEUE_UPDATED.' = ?, '.
-            self::QUEUE_REPORT.' = ? '.
+            self::QUEUE_REPORT.' = ?, '.
+            self::QUEUE_TASK.' = ? '.
             'WHERE '.self::QUEUE_ID.' = ?';
-        $this->getPersistence()->exec($statement, array($stateId, $platform->getNowExpression(), json_encode($report), $taskId));
+
+        $this->getPersistence()->exec($statement, [
+            $stateId,
+            $platform->getNowExpression(),
+            json_encode($report),
+            json_encode($task),
+            $taskId
+        ]);
     }
-    
+
+    /**
+     * Get task instance by id
+     * @param $taskId
+     * @return null|JsonTask
+     */
+    public function getTask($taskId)
+    {
+        $task = null;
+        $statement = 'SELECT * FROM ' . self::QUEUE_TABLE_NAME . ' ' .
+            'WHERE ' . self::QUEUE_ID . ' = ?';
+        $query = $this->getPersistence()->query($statement, array($taskId));
+        $data = $query->fetch(\PDO::FETCH_ASSOC);
+        if ($data) {
+            $task = JsonTask::restore($data[self::QUEUE_TASK]);
+        }
+        return $task;
+    }
+
     public function getIterator()
     {
-        return new FifoIterator($this->getPersistence());
+        return new QueueIterator($this->getPersistence());
     }
     
     /**
