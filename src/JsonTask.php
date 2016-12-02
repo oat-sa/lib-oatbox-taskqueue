@@ -20,85 +20,17 @@
  */
 namespace oat\Taskqueue;
 
-use oat\oatbox\service\ConfigurableService;
-use oat\oatbox\Configurable;
+use oat\oatbox\task\AbstractTask;
 use oat\oatbox\task\Task;
 
-class JsonTask extends Configurable implements \JsonSerializable, Task
+class JsonTask extends AbstractTask implements \JsonSerializable, Task
 {
-    private $id;
-    
-    private $invocable;
-    
-    private $params;
-    
-    private $status;
-    
     public function __construct($invocable, $params)
     {
-        $this->invocable = $invocable;
-        $this->params = $params;
+        $this->setInvocable($invocable);
+        $this->setParameters($params);
     }
     
-    /**
-     * (non-PHPdoc)
-     * @see \oat\oatbox\task\Task::getId()
-     */
-    public function getId()
-    {
-        return $this->id;
-    }
-
-    /**
-     * Setter used during construction
-     * @param string $id
-     */
-    public function setId($id)
-    {
-        $this->id = $id;
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \oat\oatbox\task\Task::getStatus()
-     */
-    public function getStatus()
-    {
-        return $this->status;
-    }
-    
-    /**
-     * Setter used during construction
-     * @param string $status
-     */
-    public function setStatus($status)
-    {
-        $this->status = $status;
-    }
-    
-    /**
-     * (non-PHPdoc)
-     * @see \oat\oatbox\task\Task::getInvocable()
-     */
-    public function getInvocable()
-    {
-        return $this->invocable;
-    }
-    
-    /**
-     * (non-PHPdoc)
-     * @see \oat\oatbox\task\Task::getParameters()
-     */
-    public function getParameters()
-    {
-        return $this->params;
-    }
-    
-    public function setParameters(array $params)
-    {
-        $this->params = $params;
-    }
-
     // Serialization
     
     /**
@@ -107,26 +39,39 @@ class JsonTask extends Configurable implements \JsonSerializable, Task
      */
     public function jsonSerialize()
     {
-        $invocable = $this->invocable;
+        $invocable = $this->getInvocable();
         if (is_object($invocable) && !$invocable instanceof \JsonSerializable) {
             $invocable = get_class($invocable);
         }
 
-        return array(
-        	'invocable' => $invocable,
-            'params'    => $this->params
-        );
+        return [
+            'invocable' => $invocable,
+            'params'    => $this->getParameters(),
+            'id'        => $this->getId(),
+            'status'    => $this->getStatus(),
+            'report'    => $this->getReport(),
+        ];
     }
     
     /**
      * Restore a task
      * 
-     * @param string $json
+     * @param array $data
      * @return \oat\Taskqueue\JsonTask
      */
-    public static function restore($json)
+    public static function restore($data)
     {
-        $data = json_decode($json, true);
-        return new self($data['invocable'], $data['params']);
+        $taskData = json_decode($data, true);
+        $task = new self($taskData['invocable'], $taskData['params']);
+        if (isset($taskData['report'])) {
+            $task->setReport($taskData['report']);
+        }
+        if (isset($taskData['status'])) {
+            $task->setStatus($taskData['status']);
+        }
+        if (isset($taskData['id'])) {
+            $task->setId($taskData['id']);
+        }
+        return $task;
     }
 }
