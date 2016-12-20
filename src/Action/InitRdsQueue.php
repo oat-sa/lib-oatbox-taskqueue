@@ -20,11 +20,9 @@
  */
 namespace oat\Taskqueue\Action;
 
-use oat\oatbox\service\ConfigurableService;
 use oat\Taskqueue\Persistence\RdsQueue;
 use Doctrine\DBAL\Schema\SchemaException;
 use oat\oatbox\task\Queue;
-use oat\oatbox\action\Action;
 use common_report_Report as Report;
 
 class InitRdsQueue extends \common_ext_action_InstallAction
@@ -53,7 +51,7 @@ class InitRdsQueue extends \common_ext_action_InstallAction
             $queueTable->addColumn(RdsQueue::QUEUE_ADDED, "string",array("notnull" => true));
             $queueTable->addColumn(RdsQueue::QUEUE_UPDATED, "string",array("notnull" => true));
             $queueTable->addColumn(RdsQueue::QUEUE_OWNER, "string",array("notnull" => false, "length" => 255));
-            $queueTable->addColumn(RdsQueue::QUEUE_TASK, "string",array("notnull" => true, "length" => 4000));
+            $queueTable->addColumn(RdsQueue::QUEUE_TASK, "string",array("default" => null, "notnull" => false));
             $queueTable->addColumn(RdsQueue::QUEUE_REPORT, "text", array("default" => null,"notnull" => false));
             $queueTable->setPrimaryKey(array(RdsQueue::QUEUE_ID));
 
