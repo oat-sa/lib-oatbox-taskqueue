@@ -49,6 +49,8 @@ class InitRdsQueue extends \common_ext_action_InstallAction
 
             $queueTable->addColumn(RdsQueue::QUEUE_ID, "string",array("notnull" => true, "length" => 255));
             $queueTable->addColumn(RdsQueue::QUEUE_STATUS, "string",array("notnull" => true,"length" => 50));
+            $queueTable->addColumn(RdsQueue::QUEUE_LABEL, "string",array("default" => null , "notnull" => false,"length" => 255));
+            $queueTable->addColumn(RdsQueue::QUEUE_TYPE, "string",array("default" => null , "notnull" => false,"length" => 50));
             $queueTable->addColumn(RdsQueue::QUEUE_ADDED, "string",array("notnull" => true));
             $queueTable->addColumn(RdsQueue::QUEUE_UPDATED, "string",array("notnull" => true));
             $queueTable->addColumn(RdsQueue::QUEUE_OWNER, "string",array("notnull" => false, "length" => 255));
