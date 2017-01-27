@@ -76,6 +76,9 @@ class QueueIterator implements \Iterator
                            ' LIMIT 1';
         }
 
+        if (empty($this->params)) {
+            $this->params = [Task::STATUS_CREATED];
+        }
         $this->rewind();
     }
 
