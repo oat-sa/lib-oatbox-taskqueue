@@ -175,12 +175,13 @@ class TaskQueueSearch implements DatatablePayload , ServiceLocatorAwareInterface
                     "report"       => $taskData['report'],
                 ];
         }
-
+        $countTotal = $this->count();
+        $rows = $this->request->getRows();
         $data = [
-            'rows'    => $this->request->getRows(),
+            'rows'    => $rows,
             'page'    => $this->request->getPage(),
             'amount' => count($taskList),
-            'total'   => $this->count(),
+            'total'   => ceil($countTotal/$rows),
             'data' => $taskList,
         ];
 
