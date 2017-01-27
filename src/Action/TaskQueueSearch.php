@@ -66,10 +66,11 @@ class TaskQueueSearch implements DatatablePayload , ServiceLocatorAwareInterface
 
     protected function setQueryFilter($name , $value) {
         if(is_array($value)) {
-            return  ' ' . $name . ' IN (?) ';
+            return  ' ' . $name . ' IN (\''. implode('\' , \'' , $value).'\') ';
         }
-        return $name . ' = ? ';
+        return $name . ' = \'' . $value . '\' ';
     }
+
 
     protected function setQueryParameters($params = []) {
 
@@ -141,13 +142,14 @@ class TaskQueueSearch implements DatatablePayload , ServiceLocatorAwareInterface
         $query = 'SELECT count(*) as CPT FROM ' . RdsQueue::QUEUE_TABLE_NAME . ' WHERE ';
         $query .= $this->setQueryParameters($params);
 
-        $result = $this->persistence->query($query, $params);
+        $result = $this->persistence->query($query);
         $taskCount = $result->fetch();
         if($taskCount === false) {
             return 0;
         }
         return $taskCount['CPT'];
     }
+
 
     public function getPayload() {
 
