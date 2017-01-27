@@ -71,16 +71,8 @@ class TaskQueueSearch implements DatatablePayload , ServiceLocatorAwareInterface
         return $name . ' = ? ';
     }
 
-    protected function setQueryParameters() {
-        $params = $this->request->getFilters();
-
-        $params['status'] = [
-            Task::STATUS_CREATED,
-            Task::STATUS_STARTED,
-            Task::STATUS_RUNNING,
-            Task::STATUS_FINISHED,
-        ];
-
+    protected function setQueryParameters($params = []) {
+        
         $filters = [];
         foreach ($params as $name => $value) {
             $filters[] = $this->setQueryFilter($name , $value);
@@ -121,12 +113,18 @@ class TaskQueueSearch implements DatatablePayload , ServiceLocatorAwareInterface
 
         $params = $this->request->getFilters();
 
+        $params['status'] = [
+            Task::STATUS_CREATED,
+            Task::STATUS_STARTED,
+            Task::STATUS_RUNNING,
+            Task::STATUS_FINISHED,
+        ];
+
         $query = 'SELECT * FROM ' . RdsQueue::QUEUE_TABLE_NAME . ' WHERE ';
 
-        $query .= $this->setQueryParameters();
+        $query .= $this->setQueryParameters( $params);
         $query .= $this->setSort();
         $query .= $this->setLimit();
-	    var_dump($query);die();
         $iterator = new QueueIterator($this->persistence , $query , $params);
 
         return $iterator;
