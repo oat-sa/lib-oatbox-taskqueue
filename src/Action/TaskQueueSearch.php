@@ -27,6 +27,7 @@ use oat\oatbox\task\Task;
 use oat\tao\model\datatable\DatatablePayload;
 use oat\tao\model\datatable\DatatableRequest as DatatableRequestInterface;
 use oat\tao\model\datatable\implementation\DatatableRequest;
+use oat\Taskqueue\JsonTask;
 use oat\Taskqueue\Persistence\QueueIterator;
 use oat\Taskqueue\Persistence\RdsQueue;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
@@ -132,9 +133,9 @@ class TaskQueueSearch implements DatatablePayload , ServiceLocatorAwareInterface
         $query .= $this->setQueryParameters( $params);
         $query .= $this->setSort();
         $query .= $this->setLimit();
-        $iterator = new QueueIterator($this->persistence , $query , $params);
+        $stmt = $this->persistence->query($query);
 
-        return $iterator;
+        return $stmt->fetchAll();
     }
 
     protected function count() {
@@ -157,24 +158,26 @@ class TaskQueueSearch implements DatatablePayload , ServiceLocatorAwareInterface
 
         $taskList = [];
 
-        foreach ($iterator as $task) {
+        foreach ($iterator as $taskData) {
             $taskList[] =
                 [
-                    "id"           => $task->getId(),
-                    "label"        => $task->getLabel(),
-                    "creationDate" => strtotime($task),
-                    "status"       => $task->getStatus(),
-                    "report"       => $task->getReport(),
+                    "id"           => $taskData['id'],
+                    "label"        => $taskData['label'],
+                    "creationDate" => strtotime($taskData['added']),
+                    "status"       => $taskData['status'],
+                    "report"       => $taskData['report'],
                 ];
         }
 
         $data = [
+            'rows'    => $this->request->getRows(),
             'page'    => $this->request->getPage(),
-            'records' => count($taskList),
+            'amount' => count($taskList),
             'total'   => $this->count(),
+            'data' => $taskList,
         ];
 
-        return array_merge($taskList , $data);
+        return $data;
 
     }
 
