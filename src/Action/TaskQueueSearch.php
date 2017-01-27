@@ -133,7 +133,7 @@ class TaskQueueSearch implements DatatablePayload , ServiceLocatorAwareInterface
     protected function count() {
         $params = $this->request->getFilters();
         $query = 'SELECT count(*) as CPT FROM ' . RdsQueue::QUEUE_TABLE_NAME . ' WHERE ';
-        $query = $this->setQueryParameters($query);
+        $query .= $this->setQueryParameters();
 
         $result = $this->persistence->query($query, $params);
         $taskCount = $result->fetch();
