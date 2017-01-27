@@ -109,8 +109,7 @@ class TaskQueueSearch implements DatatablePayload , ServiceLocatorAwareInterface
         return $query;
     }
 
-    protected function search()  {
-
+    protected function getFilters() {
         $params = $this->request->getFilters();
 
         $params['status'] = [
@@ -119,6 +118,13 @@ class TaskQueueSearch implements DatatablePayload , ServiceLocatorAwareInterface
             Task::STATUS_RUNNING,
             Task::STATUS_FINISHED,
         ];
+        return $params;
+
+    }
+
+    protected function search()  {
+
+        $params = $this->getFilters();
 
         $query = 'SELECT * FROM ' . RdsQueue::QUEUE_TABLE_NAME . ' WHERE ';
 
@@ -131,9 +137,9 @@ class TaskQueueSearch implements DatatablePayload , ServiceLocatorAwareInterface
     }
 
     protected function count() {
-        $params = $this->request->getFilters();
+        $params = $this->getFilters();
         $query = 'SELECT count(*) as CPT FROM ' . RdsQueue::QUEUE_TABLE_NAME . ' WHERE ';
-        $query .= $this->setQueryParameters();
+        $query .= $this->setQueryParameters($params);
 
         $result = $this->persistence->query($query, $params);
         $taskCount = $result->fetch();
