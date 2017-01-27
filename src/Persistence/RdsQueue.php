@@ -21,6 +21,7 @@
 namespace oat\Taskqueue\Persistence;
 
 use oat\oatbox\service\ConfigurableService;
+use oat\Taskqueue\Action\TaskQueueSearch;
 use oat\Taskqueue\JsonTask;
 use oat\oatbox\task\Task;
 use oat\oatbox\task\Queue;
@@ -144,5 +145,13 @@ class RdsQueue extends ConfigurableService implements Queue
     {
         $persistenceManager = $this->getServiceManager()->get(\common_persistence_Manager::SERVICE_KEY);
         return $persistenceManager->getPersistenceById($this->getOption(self::OPTION_PERSISTENCE));
+    }
+
+    /**
+     * @return TaskQueueSearch
+     */
+    public function getPayload()
+    {
+        return new TaskQueueSearch($this->getPersistence());
     }
 }
