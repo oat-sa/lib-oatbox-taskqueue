@@ -72,7 +72,7 @@ class TaskQueueSearch implements DatatablePayload , ServiceLocatorAwareInterface
     }
 
     protected function setQueryParameters($params = []) {
-        
+
         $filters = [];
         foreach ($params as $name => $value) {
             $filters[] = $this->setQueryFilter($name , $value);
@@ -93,14 +93,14 @@ class TaskQueueSearch implements DatatablePayload , ServiceLocatorAwareInterface
         return ' ORDER BY ' . RdsQueue::QUEUE_STATUS . ' DESC ' ;
     }
 
-    protected function setLimit($query) {
+    protected function setLimit() {
 
         $page = $this->request->getPage();
         $rows = $this->request->getRows();
 
         $offset = $rows * ($page-1);
 
-        $query .= ' LIMIT ' . ($rows);
+        $query = ' LIMIT ' . ($rows);
 
         if($offset > 0) {
             $query .= ' OFFSET ' . $offset ;
