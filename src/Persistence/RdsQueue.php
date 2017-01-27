@@ -150,8 +150,8 @@ class RdsQueue extends ConfigurableService implements Queue
     /**
      * @return TaskQueueSearch
      */
-    public function getPayload()
+    public function getPayload($currentUserId)
     {
-        return new TaskQueueSearch($this->getPersistence());
+        return new TaskQueueSearch($this->getPersistence() ,$currentUserId);
     }
 }
