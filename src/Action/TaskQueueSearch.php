@@ -71,26 +71,34 @@ class TaskQueueSearch implements DatatablePayload , ServiceLocatorAwareInterface
         return $name . ' = ? ';
     }
 
-    protected function setQueryParameters($query) {
+    protected function setQueryParameters() {
         $params = $this->request->getFilters();
+
+        $params['status'] = [
+            Task::STATUS_CREATED,
+            Task::STATUS_STARTED,
+            Task::STATUS_RUNNING,
+            Task::STATUS_FINISHED,
+        ];
+
         $filters = [];
         foreach ($params as $name => $value) {
-            $filters[] = $this->setQueryFilter($query , $name , $value);
+            $filters[] = $this->setQueryFilter($name , $value);
         }
 
-        return $query . implode(' AND ' , $filters );
+        return implode(' AND ' , $filters );
 
     }
 
-    protected function setSort($query)
+    protected function setSort()
     {
         $sortBy    = $this->request->getSortBy();
         $sortOrder = $this->request->getSortOrder();
 
         if(!empty($sortBy)) {
-            return $query . ' ORDER BY ' . $sortBy . ' ' . $sortOrder . ' ';
+            return  ' ORDER BY ' . $sortBy . ' ' . $sortOrder . ' ';
         }
-        return $query . ' ORDER BY ' . RdsQueue::QUEUE_STATUS . ' DESC ' . $sortOrder . ' ';
+        return ' ORDER BY ' . RdsQueue::QUEUE_STATUS . ' DESC ' ;
     }
 
     protected function setLimit($query) {
@@ -100,7 +108,13 @@ class TaskQueueSearch implements DatatablePayload , ServiceLocatorAwareInterface
 
         $offset = $rows * ($page-1);
 
-        return $query . ' LIMIT ' . ($rows) . ' OFFSET ' . $offset ;
+        $query .= ' LIMIT ' . ($rows);
+
+        if($offset > 0) {
+            $query .= ' OFFSET ' . $offset ;
+        }
+
+        return $query;
     }
 
     protected function search()  {
@@ -109,10 +123,10 @@ class TaskQueueSearch implements DatatablePayload , ServiceLocatorAwareInterface
 
         $query = 'SELECT * FROM ' . RdsQueue::QUEUE_TABLE_NAME . ' WHERE ';
 
-        $query = $this->setQueryParameters($query);
-        $query = $this->setSort($query);
-        $query = $this->setLimit($query);
-
+        $query .= $this->setQueryParameters();
+        $query .= $this->setSort();
+        $query .= $this->setLimit();
+	    var_dump($query);die();
         $iterator = new QueueIterator($this->persistence , $query , $params);
 
         return $iterator;
