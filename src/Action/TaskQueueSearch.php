@@ -54,7 +54,7 @@ class TaskQueueSearch implements DatatablePayload , ServiceLocatorAwareInterface
      * DatatablePayload constructor.
      * @param DatatableRequestInterface|null $request
      */
-    public function __construct(\common_persistence_SqlPersistence $persistence , $currentUserId , DatatableRequestInterface $request = null)
+    public function __construct(\common_persistence_SqlPersistence $persistence , $currentUserId = null , DatatableRequestInterface $request = null)
     {
         $this->setServiceLocator(ServiceManager::getServiceManager());
         $this->persistence = $persistence;
@@ -124,9 +124,9 @@ class TaskQueueSearch implements DatatablePayload , ServiceLocatorAwareInterface
             Task::STATUS_RUNNING,
             Task::STATUS_FINISHED,
         ];
-
-        $params['owner'] = $this->currentUserId;
-        
+        if(!empty($this->currentUserId)) {
+            $params['owner'] = $this->currentUserId;
+        }
         return $params;
 
     }
