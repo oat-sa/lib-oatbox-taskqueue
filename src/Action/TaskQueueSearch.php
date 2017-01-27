@@ -54,7 +54,7 @@ class TaskQueueSearch implements DatatablePayload , ServiceLocatorAwareInterface
     public function __construct(\common_persistence_SqlPersistence $persistence , DatatableRequestInterface $request = null)
     {
         $this->setServiceLocator(ServiceManager::getServiceManager());
-
+        $this->persistence = $persistence;
         if ($request === null) {
             $request = DatatableRequest::fromGlobals();
         }
