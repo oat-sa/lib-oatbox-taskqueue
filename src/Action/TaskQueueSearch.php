@@ -143,6 +143,9 @@ class TaskQueueSearch implements DatatablePayload , ServiceLocatorAwareInterface
 
         $result = $this->persistence->query($query, $params);
         $taskCount = $result->fetch();
+        if($taskCount === false) {
+            return 0;
+        }
         return $taskCount['CPT'];
     }
 
