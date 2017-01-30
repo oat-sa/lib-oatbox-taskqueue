@@ -90,7 +90,7 @@ class RdsQueue extends ConfigurableService implements Queue
      * @param $stateId
      * @param string $report
      */
-    public function updateTaskStatus($taskId, $stateId, $report = '' , $label = null)
+    public function updateTaskStatus($taskId, $stateId, $report = '' )
     {
         $task = $this->getTask($taskId);
         $task->setReport($report);
@@ -99,7 +99,6 @@ class RdsQueue extends ConfigurableService implements Queue
         $platform = $this->getPersistence()->getPlatForm();
         $statement = 'UPDATE '.self::QUEUE_TABLE_NAME.' SET '.
             self::QUEUE_STATUS.' = ?, '.
-            self::QUEUE_LABEL . ' = ?, '.
             self::QUEUE_UPDATED.' = ?, '.
             self::QUEUE_REPORT.' = ?, '.
             self::QUEUE_TASK.' = ? '.
@@ -107,7 +106,6 @@ class RdsQueue extends ConfigurableService implements Queue
 
         $this->getPersistence()->exec($statement, [
             $stateId,
-            $label,
             $platform->getNowExpression(),
             json_encode($report),
             json_encode($task),
