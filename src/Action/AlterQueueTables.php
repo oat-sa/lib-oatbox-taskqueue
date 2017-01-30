@@ -44,6 +44,19 @@ class AlterQueueTables extends \common_ext_action_InstallAction
         $schemaManager = $this->persistence->getDriver()->getSchemaManager();
         $schema = $schemaManager->createSchema();
         $fromSchema = clone $schema;
+
+        try {
+            $tableData = $schema->getTable(RdsQueue::QUEUE_TABLE_NAME);
+            $tableData->addColumn(RdsQueue::QUEUE_TYPE, "string",array("default" => null , "notnull" => false,"length" => 255));
+        } catch(SchemaException $e) {
+            \common_Logger::i('Database Schema already up to date.');
+        }
+        try {
+            $tableData = $schema->getTable(RdsQueue::QUEUE_TABLE_NAME);
+            $tableData->addColumn(RdsQueue::QUEUE_LABEL, "string",array("default" => null , "notnull" => false,"length" => 255));
+        } catch(SchemaException $e) {
+            \common_Logger::i('Database Schema already up to date.');
+        }
         try {
             $tableData = $schema->getTable(RdsQueue::QUEUE_TABLE_NAME);
             $tableData->changeColumn(RdsQueue::QUEUE_TASK, array('type' => Type::getType('text'), "default" => null, "notnull" => false));
