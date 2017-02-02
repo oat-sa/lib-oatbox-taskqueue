@@ -72,6 +72,12 @@ class JsonTask extends AbstractTask implements \JsonSerializable, Task
         if (isset($taskData['id'])) {
             $task->setId($taskData['id']);
         }
+        if (isset($taskData['added'])) {
+            $task->setCreationDate($taskData['added']);
+        }
+        if (isset($taskData['owner'])) {
+            $task->setOwner($taskData['owner']);
+        }
         return $task;
     }
 }
