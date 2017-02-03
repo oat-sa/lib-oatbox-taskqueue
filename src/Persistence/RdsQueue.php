@@ -21,6 +21,7 @@
 namespace oat\Taskqueue\Persistence;
 
 use oat\oatbox\service\ConfigurableService;
+use oat\Taskqueue\Action\TaskQueueSearch;
 use oat\Taskqueue\JsonTask;
 use oat\oatbox\task\Task;
 use oat\oatbox\task\Queue;
@@ -30,7 +31,11 @@ class RdsQueue extends ConfigurableService implements Queue
     const QUEUE_TABLE_NAME = 'queue';
     
     const QUEUE_ID = 'id';
-    
+
+    const QUEUE_LABEL = 'label';
+
+    const QUEUE_TYPE = 'type';
+
     const QUEUE_TASK = 'task';
     
     const QUEUE_OWNER = 'owner';
@@ -49,10 +54,11 @@ class RdsQueue extends ConfigurableService implements Queue
      * @param $action
      * @param $parameters
      * @param boolean $repeatedly Whether task created repeatedly (for example when execution of task was failed and task puts to the queue again).
+     * @param null $label
+     * @param null $type
      * @return JsonTask
-     * @throws \common_exception_Error
      */
-    public function createTask($action, $parameters, $repeatedly = false)
+    public function createTask($action, $parameters, $repeatedly = false, $label = null , $type = null)
     {
         $task = new JsonTask($action, $parameters);
         $id = \common_Utils::getNewUri();
@@ -61,13 +67,15 @@ class RdsQueue extends ConfigurableService implements Queue
 
         $platform = $this->getPersistence()->getPlatForm();
         $query = 'INSERT INTO '.self::QUEUE_TABLE_NAME.' ('
-            .self::QUEUE_ID.', '.self::QUEUE_OWNER.', '.self::QUEUE_TASK.', '.self::QUEUE_STATUS.', '.self::QUEUE_ADDED.', '.self::QUEUE_UPDATED.') '
-            .'VALUES  (?, ?, ?, ?, ?, ?)';
+            .self::QUEUE_ID .', '.self::QUEUE_OWNER.', ' .self::QUEUE_LABEL.', ' .self::QUEUE_TYPE.', ' . self::QUEUE_TASK.', '.self::QUEUE_STATUS.', '.self::QUEUE_ADDED.', '.self::QUEUE_UPDATED.') '
+            .'VALUES  (?, ?, ?, ?, ?, ? , ? , ?)';
 
         $persistence = $this->getPersistence();
         $persistence->exec($query, array(
             $task->getId(),
             \common_session_SessionManager::getSession()->getUser()->getIdentifier(),
+            $label,
+            $type,
             json_encode($task),
             $task->getStatus(),
             $platform->getNowExpression(),
@@ -82,7 +90,7 @@ class RdsQueue extends ConfigurableService implements Queue
      * @param $stateId
      * @param string $report
      */
-    public function updateTaskStatus($taskId, $stateId, $report = '')
+    public function updateTaskStatus($taskId, $stateId, $report = '' )
     {
         $task = $this->getTask($taskId);
         $task->setReport($report);
@@ -135,5 +143,13 @@ class RdsQueue extends ConfigurableService implements Queue
     {
         $persistenceManager = $this->getServiceManager()->get(\common_persistence_Manager::SERVICE_KEY);
         return $persistenceManager->getPersistenceById($this->getOption(self::OPTION_PERSISTENCE));
+    }
+
+    /**
+     * @return TaskQueueSearch
+     */
+    public function getPayload($currentUserId)
+    {
+        return new TaskQueueSearch($this->getPersistence() ,$currentUserId);
     }
 }
