@@ -64,7 +64,6 @@ class RdsQueue extends ConfigurableService implements Queue
         $id = \common_Utils::getNewUri();
         $task->setId($id);
         $task->setStatus(Task::STATUS_CREATED);
-
         $platform = $this->getPersistence()->getPlatForm();
         $query = 'INSERT INTO '.self::QUEUE_TABLE_NAME.' ('
             .self::QUEUE_ID .', '.self::QUEUE_OWNER.', ' .self::QUEUE_LABEL.', ' .self::QUEUE_TYPE.', ' . self::QUEUE_TASK.', '.self::QUEUE_STATUS.', '.self::QUEUE_ADDED.', '.self::QUEUE_UPDATED.') '
@@ -90,25 +89,38 @@ class RdsQueue extends ConfigurableService implements Queue
      * @param $stateId
      * @param string $report
      */
-    public function updateTaskStatus($taskId, $stateId, $report = '' )
+    public function updateTaskStatus($taskId, $stateId)
     {
-        $task = $this->getTask($taskId);
-        $task->setReport($report);
-        $task->setStatus($stateId);
-
         $platform = $this->getPersistence()->getPlatForm();
         $statement = 'UPDATE '.self::QUEUE_TABLE_NAME.' SET '.
             self::QUEUE_STATUS.' = ?, '.
-            self::QUEUE_UPDATED.' = ?, '.
-            self::QUEUE_REPORT.' = ?, '.
-            self::QUEUE_TASK.' = ? '.
+            self::QUEUE_UPDATED.' = ? '.
             'WHERE '.self::QUEUE_ID.' = ?';
 
         $this->getPersistence()->exec($statement, [
             $stateId,
             $platform->getNowExpression(),
+            $taskId
+        ]);
+    }
+
+
+    /**
+     * @param string $taskId
+     * @param $stateId
+     * @param string $report
+     */
+    public function updateTaskReport($taskId, $report)
+    {
+        $platform = $this->getPersistence()->getPlatForm();
+        $statement = 'UPDATE '.self::QUEUE_TABLE_NAME.' SET '.
+            self::QUEUE_UPDATED.' = ?, '.
+            self::QUEUE_REPORT.' = ? '.
+            'WHERE '.self::QUEUE_ID.' = ?';
+
+        $this->getPersistence()->exec($statement, [
+            $platform->getNowExpression(),
             json_encode($report),
-            json_encode($task),
             $taskId
         ]);
     }
@@ -126,7 +138,10 @@ class RdsQueue extends ConfigurableService implements Queue
         $query = $this->getPersistence()->query($statement, array($taskId));
         $data = $query->fetch(\PDO::FETCH_ASSOC);
         if ($data) {
-            $task = JsonTask::restore($data[self::QUEUE_TASK]);
+            $taskData = json_decode($data[self::QUEUE_TASK], true);
+            unset($data[self::QUEUE_TASK]);
+            $data = array_merge($data, $taskData);
+            $task = JsonTask::restore($data);
         }
         return $task;
     }

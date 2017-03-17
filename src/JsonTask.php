@@ -46,10 +46,7 @@ class JsonTask extends AbstractTask implements \JsonSerializable, Task
 
         return [
             'invocable' => $invocable,
-            'params'    => $this->getParameters(),
-            'id'        => $this->getId(),
-            'status'    => $this->getStatus(),
-            'report'    => $this->getReport(),
+            'params'    => $this->getParameters()
         ];
     }
     
@@ -61,23 +58,20 @@ class JsonTask extends AbstractTask implements \JsonSerializable, Task
      */
     public static function restore($data)
     {
-        $taskData = json_decode($data, true);
-        $task = new self($taskData['invocable'], $taskData['params']);
-        if (isset($taskData['report'])) {
-            $task->setReport($taskData['report']);
+
+        if (!isset($data['invocable'], $data['params'])){
+            return null;
         }
-        if (isset($taskData['status'])) {
-            $task->setStatus($taskData['status']);
+
+        $task = new self($data['invocable'], $data['params']);
+
+        foreach ($data as $key => $value){
+            $method = 'set'.ucfirst($key);
+            if(method_exists($task, $method)){
+                $task->$method($value);
+            }
         }
-        if (isset($taskData['id'])) {
-            $task->setId($taskData['id']);
-        }
-        if (isset($taskData['added'])) {
-            $task->setCreationDate($taskData['added']);
-        }
-        if (isset($taskData['owner'])) {
-            $task->setOwner($taskData['owner']);
-        }
+
         return $task;
     }
 }
