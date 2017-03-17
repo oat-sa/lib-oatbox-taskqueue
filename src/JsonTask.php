@@ -67,11 +67,11 @@ class JsonTask extends AbstractTask implements \JsonSerializable, Task
     {
         $taskData = json_decode($data, true);
 
-        if (!isset($data['invocable'], $data['params'])){
+        if (!isset($taskData['invocable'], $taskData['params'])){
             return null;
         }
 
-        $task = new self($data['invocable'], $data['params']);
+        $task = new self($taskData['invocable'], $taskData['params']);
 
         if (isset($taskData['report'])) {
             $task->setReport(\common_report_Report::jsonUnserialize($taskData['report']));
