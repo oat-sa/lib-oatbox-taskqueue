@@ -62,9 +62,13 @@ class RdsQueue extends ConfigurableService implements Queue
     {
         $task = new JsonTask($action, $parameters);
         $id = \common_Utils::getNewUri();
+        $platform = $this->getPersistence()->getPlatForm();
+        $now = $platform->getNowExpression();
+
         $task->setId($id);
         $task->setStatus(Task::STATUS_CREATED);
-        $platform = $this->getPersistence()->getPlatForm();
+        $task->setCreationDate($now);
+
         $query = 'INSERT INTO '.self::QUEUE_TABLE_NAME.' ('
             .self::QUEUE_ID .', '.self::QUEUE_OWNER.', ' .self::QUEUE_LABEL.', ' .self::QUEUE_TYPE.', ' . self::QUEUE_TASK.', '.self::QUEUE_STATUS.', '.self::QUEUE_ADDED.', '.self::QUEUE_UPDATED.') '
             .'VALUES  (?, ?, ?, ?, ?, ? , ? , ?)';
@@ -77,8 +81,8 @@ class RdsQueue extends ConfigurableService implements Queue
             $type,
             json_encode($task),
             $task->getStatus(),
-            $platform->getNowExpression(),
-            $platform->getNowExpression()
+            $now,
+            $now
         ));
 
         return $task;
@@ -143,9 +147,9 @@ class RdsQueue extends ConfigurableService implements Queue
         $statement = 'SELECT * FROM ' . self::QUEUE_TABLE_NAME . ' ' .
             'WHERE ' . self::QUEUE_ID . ' = ?';
         $query = $this->getPersistence()->query($statement, array($taskId));
-        $taskData = $query->fetch(\PDO::FETCH_ASSOC);
-        if ($taskData) {
-            $task = JsonTask::restore($taskData[self::QUEUE_TASK]);
+        $data = $query->fetch(\PDO::FETCH_ASSOC);
+        if ($data) {
+            $task = JsonTask::restore($data[self::QUEUE_TASK]);
         }
         return $task;
     }
