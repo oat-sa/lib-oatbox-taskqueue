@@ -69,6 +69,40 @@ class JsonTaskTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($status, $task->getStatus());
     }
 
+    public function testGetLabel()
+    {
+        $label = 'bar';
+        $task = new JsonTask('invocable/Action', []);
+        $task->setLabel($label);
+        $this->assertEquals($label, $task->getLabel());
+    }
+
+    public function testSetLabel()
+    {
+        $label = 'bar';
+        $task = new JsonTask('invocable/Action', []);
+        $this->assertEquals(null, $task->getLabel());
+        $task->setLabel($label);
+        $this->assertEquals($label, $task->getLabel());
+    }
+
+    public function testGetType()
+    {
+        $type = 'bar';
+        $task = new JsonTask('invocable/Action', []);
+        $task->setType($type);
+        $this->assertEquals($type, $task->getType());
+    }
+
+    public function testSetType()
+    {
+        $type = 'bar';
+        $task = new JsonTask('invocable/Action', []);
+        $this->assertEquals(null, $task->getType());
+        $task->setType($type);
+        $this->assertEquals($type, $task->getType());
+    }
+
     public function testGetInvocable()
     {
         $task = new JsonTask('invocable/Action', []);
