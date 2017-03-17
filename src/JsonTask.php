@@ -50,6 +50,7 @@ class JsonTask extends AbstractTask implements \JsonSerializable, Task
             'id'        => $this->getId(),
             'status'    => $this->getStatus(),
             'report'    => $this->getReport(),
+            'added'     => $this->getCreationDate(),
         ];
     }
     

@@ -147,8 +147,6 @@ class QueueIterator implements \Iterator
             $task = null;
         } else {
             $task = JsonTask::restore($taskData[RdsQueue::QUEUE_TASK]);
-            $task->setId($taskData[RdsQueue::QUEUE_ID]);
-            $task->setCreationDate($taskData[RdsQueue::QUEUE_ADDED]);
         }
 
         $this->currentResult = $key;
