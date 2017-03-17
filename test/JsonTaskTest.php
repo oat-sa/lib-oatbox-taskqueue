@@ -121,7 +121,8 @@ class JsonTaskTest extends PHPUnit_Framework_TestCase
         $task = new JsonTask(new TestAction(), $params);
         $task->setStatus(JsonTask::STATUS_CREATED);
         $task->setId(1);
-        $task->setReport('report');
+        $report = common_report_Report::createInfo('test');
+        $task->setReport($report);
 
 
         $serialized = json_encode($task);
@@ -130,7 +131,7 @@ class JsonTaskTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($params, $restoredTask->getParameters());
         $this->assertEquals('TestAction', $restoredTask->getInvocable());
         $this->assertEquals(1, $restoredTask->getId());
-        $this->assertEquals('report', $restoredTask->getReport());
+        $this->assertEquals($report, $restoredTask->getReport());
         $this->assertEquals(JsonTask::STATUS_CREATED, $restoredTask->getStatus());
     }
 }

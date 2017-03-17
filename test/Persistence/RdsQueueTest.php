@@ -87,19 +87,20 @@ class RdsQueueTest extends PHPUnit_Framework_TestCase
     {
         $queue = $this->getInstance();
         $params = ['foo' => 'bar', 2, 'three'];
-        $report = 'test report';
+        $report = common_report_Report::createInfo('My Test');
 
         $createdTask = $queue->createTask('invocable/Action', $params);
         $taskId = $createdTask->getId();
         $task = $queue->getTask($taskId);
 
         $this->assertEquals(JsonTask::STATUS_CREATED, $task->getStatus());
+        $this->assertEquals(null, $task->getReport());
 
         $queue->updateTaskReport($task->getId(), $report);
 
         $task = $queue->getTask($taskId);
 
-        $this->assertEquals(json_encode($report), $task->getReport());
+        $this->assertEquals($report, $task->getReport());
 
         $this->deleteTask($taskId);
     }
