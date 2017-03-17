@@ -24,6 +24,7 @@ use oat\oatbox\service\ServiceNotFoundException;
 use oat\Taskqueue\Persistence\RdsQueue;
 use oat\Taskqueue\Persistence\QueueIterator;
 use oat\oatbox\task\Task;
+use oat\Taskqueue\JsonTask;
 
 /**
  * Class QueueIterator
@@ -196,7 +197,8 @@ class QueueIteratorTest extends PHPUnit_Framework_TestCase
                 RdsQueue::QUEUE_ADDED => 1,
                 RdsQueue::QUEUE_UPDATED => 0,
                 RdsQueue::QUEUE_OWNER => 'http://sample/first.rdf#i1474293333684066',
-                RdsQueue::QUEUE_TASK => '{"invocable":"","params":[]}',
+                'invocable' => "",
+                'params' => [],
             ],
             [
                 RdsQueue::QUEUE_ID => 'http://sample/first.rdf#i14743578724540002_test_record',
@@ -204,7 +206,8 @@ class QueueIteratorTest extends PHPUnit_Framework_TestCase
                 RdsQueue::QUEUE_ADDED => 2,
                 RdsQueue::QUEUE_UPDATED => 0,
                 RdsQueue::QUEUE_OWNER => 'http://sample/first.rdf#i1474293333684066',
-                RdsQueue::QUEUE_TASK => '{"invocable":"","params":[]}',
+                'invocable' => "",
+                'params' => [],
             ],
             [
                 RdsQueue::QUEUE_ID => 'http://sample/first.rdf#i14743578724540003_test_record',
@@ -212,7 +215,8 @@ class QueueIteratorTest extends PHPUnit_Framework_TestCase
                 RdsQueue::QUEUE_ADDED => 3,
                 RdsQueue::QUEUE_UPDATED => 0,
                 RdsQueue::QUEUE_OWNER => 'http://sample/first.rdf#i1474293333684066',
-                RdsQueue::QUEUE_TASK => '{"invocable":"","params":[]}',
+                'invocable' => "",
+                'params' => [],
             ],
             [
                 RdsQueue::QUEUE_ID => 'http://sample/first.rdf#i14743578724540004_test_record',
@@ -220,19 +224,21 @@ class QueueIteratorTest extends PHPUnit_Framework_TestCase
                 RdsQueue::QUEUE_ADDED => 4,
                 RdsQueue::QUEUE_UPDATED => 0,
                 RdsQueue::QUEUE_OWNER => 'http://sample/first.rdf#i1474293333684066',
-                RdsQueue::QUEUE_TASK => '{"invocable":"","params":[]}',
+                'invocable' => "",
+                'params' => [],
             ],
         ];
 
         $persistence = $this->getPersistence();
-        foreach ($this->fixtureData as $task) {
+        foreach ($this->fixtureData as $taskData) {
+            $task = JsonTask::restore(json_encode($taskData));
             $persistence->exec($query, array(
-                $task[RdsQueue::QUEUE_ID],
-                $task[RdsQueue::QUEUE_STATUS],
-                $task[RdsQueue::QUEUE_ADDED],
-                $task[RdsQueue::QUEUE_UPDATED],
-                $task[RdsQueue::QUEUE_OWNER],
-                $task[RdsQueue::QUEUE_TASK],
+                $taskData[RdsQueue::QUEUE_ID],
+                $taskData[RdsQueue::QUEUE_STATUS],
+                $taskData[RdsQueue::QUEUE_ADDED],
+                $taskData[RdsQueue::QUEUE_UPDATED],
+                $taskData[RdsQueue::QUEUE_OWNER],
+                json_encode($task),
             ));
         }
     }
