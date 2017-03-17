@@ -46,7 +46,14 @@ class JsonTask extends AbstractTask implements \JsonSerializable, Task
 
         return [
             'invocable' => $invocable,
-            'params'    => $this->getParameters()
+            'params'    => $this->getParameters(),
+            'id'        => $this->getId(),
+            'status'    => $this->getStatus(),
+            'report'    => $this->getReport(),
+            'label'     => $this->getLabel(),
+            'type'     => $this->getType(),
+            'added'     => $this->getCreationDate(),
+            'owner'     => $this->getOwner(),
         ];
     }
     
@@ -58,6 +65,7 @@ class JsonTask extends AbstractTask implements \JsonSerializable, Task
      */
     public static function restore($data)
     {
+        $taskData = json_decode($data, true);
 
         if (!isset($data['invocable'], $data['params'])){
             return null;
@@ -65,11 +73,29 @@ class JsonTask extends AbstractTask implements \JsonSerializable, Task
 
         $task = new self($data['invocable'], $data['params']);
 
-        foreach ($data as $key => $value){
-            $method = 'set'.ucfirst($key);
-            if(method_exists($task, $method)){
-                $task->$method($value);
-            }
+        if (isset($taskData['report'])) {
+            $task->setReport(\common_report_Report::jsonUnserialize($taskData['report']));
+        }
+        if (isset($taskData['status'])) {
+            $task->setStatus($taskData['status']);
+        }
+        if (isset($taskData['id'])) {
+            $task->setId($taskData['id']);
+        }
+        if (isset($taskData['added'])) {
+            $task->setCreationDate($taskData['added']);
+        }
+        if (isset($taskData['owner'])) {
+            $task->setOwner($taskData['owner']);
+        }
+        if (isset($taskData['label'])) {
+            $task->setLabel($taskData['label']);
+        }
+        if (isset($taskData['type'])) {
+            $task->setType($taskData['type']);
+        }
+        if (isset($taskData['added'])) {
+            $task->setType($taskData['added']);
         }
 
         return $task;

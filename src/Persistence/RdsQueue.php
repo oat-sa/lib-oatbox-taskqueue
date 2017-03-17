@@ -87,18 +87,21 @@ class RdsQueue extends ConfigurableService implements Queue
     /**
      * @param string $taskId
      * @param $stateId
-     * @param string $report
      */
     public function updateTaskStatus($taskId, $stateId)
     {
+        $task = $this->getTask($taskId);
+        $task->setStatus($stateId);
         $platform = $this->getPersistence()->getPlatForm();
         $statement = 'UPDATE '.self::QUEUE_TABLE_NAME.' SET '.
             self::QUEUE_STATUS.' = ?, '.
+            self::QUEUE_TASK.' = ?, '.
             self::QUEUE_UPDATED.' = ? '.
             'WHERE '.self::QUEUE_ID.' = ?';
 
         $this->getPersistence()->exec($statement, [
             $stateId,
+            json_encode($task),
             $platform->getNowExpression(),
             $taskId
         ]);
@@ -107,19 +110,23 @@ class RdsQueue extends ConfigurableService implements Queue
 
     /**
      * @param string $taskId
-     * @param $stateId
-     * @param string $report
+     * @param \common_report_Report $report
      */
     public function updateTaskReport($taskId, $report)
     {
+        $task = $this->getTask($taskId);
+        $task->setReport($report);
+
         $platform = $this->getPersistence()->getPlatForm();
         $statement = 'UPDATE '.self::QUEUE_TABLE_NAME.' SET '.
             self::QUEUE_UPDATED.' = ?, '.
+            self::QUEUE_TASK.' = ?, '.
             self::QUEUE_REPORT.' = ? '.
             'WHERE '.self::QUEUE_ID.' = ?';
 
         $this->getPersistence()->exec($statement, [
             $platform->getNowExpression(),
+            json_encode($task),
             json_encode($report),
             $taskId
         ]);
@@ -136,12 +143,9 @@ class RdsQueue extends ConfigurableService implements Queue
         $statement = 'SELECT * FROM ' . self::QUEUE_TABLE_NAME . ' ' .
             'WHERE ' . self::QUEUE_ID . ' = ?';
         $query = $this->getPersistence()->query($statement, array($taskId));
-        $data = $query->fetch(\PDO::FETCH_ASSOC);
-        if ($data) {
-            $taskData = json_decode($data[self::QUEUE_TASK], true);
-            unset($data[self::QUEUE_TASK]);
-            $data = array_merge($data, $taskData);
-            $task = JsonTask::restore($data);
+        $taskData = $query->fetch(\PDO::FETCH_ASSOC);
+        if ($taskData) {
+            $task = JsonTask::restore($taskData[self::QUEUE_TASK]);
         }
         return $task;
     }
