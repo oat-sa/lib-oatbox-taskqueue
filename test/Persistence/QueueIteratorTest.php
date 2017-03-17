@@ -196,7 +196,7 @@ class QueueIteratorTest extends PHPUnit_Framework_TestCase
                 RdsQueue::QUEUE_ADDED => 1,
                 RdsQueue::QUEUE_UPDATED => 0,
                 RdsQueue::QUEUE_OWNER => 'http://sample/first.rdf#i1474293333684066',
-                RdsQueue::QUEUE_TASK => '{"invocable":"","params":[]}',
+                RdsQueue::QUEUE_TASK => '{"id":"http:\/\/sample\/first.rdf#i14743578724540001_test_record", "invocable":"","params":[]}',
             ],
             [
                 RdsQueue::QUEUE_ID => 'http://sample/first.rdf#i14743578724540002_test_record',
@@ -204,7 +204,7 @@ class QueueIteratorTest extends PHPUnit_Framework_TestCase
                 RdsQueue::QUEUE_ADDED => 2,
                 RdsQueue::QUEUE_UPDATED => 0,
                 RdsQueue::QUEUE_OWNER => 'http://sample/first.rdf#i1474293333684066',
-                RdsQueue::QUEUE_TASK => '{"invocable":"","params":[]}',
+                RdsQueue::QUEUE_TASK => '{"id":"http:\/\/sample\/first.rdf#i14743578724540002_test_record", "invocable":"","params":[]}',
             ],
             [
                 RdsQueue::QUEUE_ID => 'http://sample/first.rdf#i14743578724540003_test_record',
@@ -212,7 +212,7 @@ class QueueIteratorTest extends PHPUnit_Framework_TestCase
                 RdsQueue::QUEUE_ADDED => 3,
                 RdsQueue::QUEUE_UPDATED => 0,
                 RdsQueue::QUEUE_OWNER => 'http://sample/first.rdf#i1474293333684066',
-                RdsQueue::QUEUE_TASK => '{"invocable":"","params":[]}',
+                RdsQueue::QUEUE_TASK => '{"id":"http:\/\/sample\/first.rdf#i14743578724540003_test_record", "invocable":"","params":[]}',
             ],
             [
                 RdsQueue::QUEUE_ID => 'http://sample/first.rdf#i14743578724540004_test_record',
@@ -220,7 +220,7 @@ class QueueIteratorTest extends PHPUnit_Framework_TestCase
                 RdsQueue::QUEUE_ADDED => 4,
                 RdsQueue::QUEUE_UPDATED => 0,
                 RdsQueue::QUEUE_OWNER => 'http://sample/first.rdf#i1474293333684066',
-                RdsQueue::QUEUE_TASK => '{"invocable":"","params":[]}',
+                RdsQueue::QUEUE_TASK => '{"id":"http:\/\/sample\/first.rdf#i14743578724540004_test_record", "invocable":"","params":[]}',
             ],
         ];
 
