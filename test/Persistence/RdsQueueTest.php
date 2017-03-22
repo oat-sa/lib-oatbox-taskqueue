@@ -87,7 +87,7 @@ class RdsQueueTest extends PHPUnit_Framework_TestCase
     {
         $queue = $this->getInstance();
         $params = ['foo' => 'bar', 2, 'three'];
-        $report = common_report_Report::createInfo('My Test');
+        $report = 'My Test';
 
         $createdTask = $queue->createTask('invocable/Action', $params);
         $taskId = $createdTask->getId();
