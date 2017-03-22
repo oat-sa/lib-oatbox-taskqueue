@@ -155,7 +155,7 @@ class JsonTaskTest extends PHPUnit_Framework_TestCase
         $task = new JsonTask(new TestAction(), $params);
         $task->setStatus(JsonTask::STATUS_CREATED);
         $task->setId(1);
-        $report = common_report_Report::createInfo('test');
+        $report = 'test';
         $task->setReport($report);
 
 
