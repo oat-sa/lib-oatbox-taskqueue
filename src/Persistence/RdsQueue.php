@@ -62,10 +62,13 @@ class RdsQueue extends ConfigurableService implements Queue
     {
         $task = new JsonTask($action, $parameters);
         $id = \common_Utils::getNewUri();
+        $platform = $this->getPersistence()->getPlatForm();
+        $now = $platform->getNowExpression();
+
         $task->setId($id);
         $task->setStatus(Task::STATUS_CREATED);
+        $task->setCreationDate($now);
 
-        $platform = $this->getPersistence()->getPlatForm();
         $query = 'INSERT INTO '.self::QUEUE_TABLE_NAME.' ('
             .self::QUEUE_ID .', '.self::QUEUE_OWNER.', ' .self::QUEUE_LABEL.', ' .self::QUEUE_TYPE.', ' . self::QUEUE_TASK.', '.self::QUEUE_STATUS.', '.self::QUEUE_ADDED.', '.self::QUEUE_UPDATED.') '
             .'VALUES  (?, ?, ?, ?, ?, ? , ? , ?)';
@@ -78,8 +81,8 @@ class RdsQueue extends ConfigurableService implements Queue
             $type,
             json_encode($task),
             $task->getStatus(),
-            $platform->getNowExpression(),
-            $platform->getNowExpression()
+            $now,
+            $now
         ));
 
         return $task;
@@ -88,27 +91,47 @@ class RdsQueue extends ConfigurableService implements Queue
     /**
      * @param string $taskId
      * @param $stateId
-     * @param string $report
      */
-    public function updateTaskStatus($taskId, $stateId, $report = '' )
+    public function updateTaskStatus($taskId, $stateId)
     {
         $task = $this->getTask($taskId);
-        $task->setReport($report);
         $task->setStatus($stateId);
-
         $platform = $this->getPersistence()->getPlatForm();
         $statement = 'UPDATE '.self::QUEUE_TABLE_NAME.' SET '.
             self::QUEUE_STATUS.' = ?, '.
-            self::QUEUE_UPDATED.' = ?, '.
-            self::QUEUE_REPORT.' = ?, '.
-            self::QUEUE_TASK.' = ? '.
+            self::QUEUE_TASK.' = ?, '.
+            self::QUEUE_UPDATED.' = ? '.
             'WHERE '.self::QUEUE_ID.' = ?';
 
         $this->getPersistence()->exec($statement, [
             $stateId,
-            $platform->getNowExpression(),
-            json_encode($report),
             json_encode($task),
+            $platform->getNowExpression(),
+            $taskId
+        ]);
+    }
+
+
+    /**
+     * @param string $taskId
+     * @param \common_report_Report $report
+     */
+    public function updateTaskReport($taskId, $report)
+    {
+        $task = $this->getTask($taskId);
+        $task->setReport($report);
+
+        $platform = $this->getPersistence()->getPlatForm();
+        $statement = 'UPDATE '.self::QUEUE_TABLE_NAME.' SET '.
+            self::QUEUE_UPDATED.' = ?, '.
+            self::QUEUE_TASK.' = ?, '.
+            self::QUEUE_REPORT.' = ? '.
+            'WHERE '.self::QUEUE_ID.' = ?';
+
+        $this->getPersistence()->exec($statement, [
+            $platform->getNowExpression(),
+            json_encode($task),
+            json_encode($report),
             $taskId
         ]);
     }

@@ -141,13 +141,12 @@ class QueueIterator implements \Iterator
         }
 
         $result = $this->persistence->query($this->query, $params);
-        $taskData = $result->fetch();
+        $taskData = $result->fetch(\PDO::FETCH_ASSOC);
 
         if (empty($taskData)) {
             $task = null;
         } else {
             $task = JsonTask::restore($taskData[RdsQueue::QUEUE_TASK]);
-            $task->setId($taskData[RdsQueue::QUEUE_ID]);
         }
 
         $this->currentResult = $key;

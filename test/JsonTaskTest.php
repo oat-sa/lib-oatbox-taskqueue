@@ -69,6 +69,40 @@ class JsonTaskTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($status, $task->getStatus());
     }
 
+    public function testGetLabel()
+    {
+        $label = 'bar';
+        $task = new JsonTask('invocable/Action', []);
+        $task->setLabel($label);
+        $this->assertEquals($label, $task->getLabel());
+    }
+
+    public function testSetLabel()
+    {
+        $label = 'bar';
+        $task = new JsonTask('invocable/Action', []);
+        $this->assertEquals(null, $task->getLabel());
+        $task->setLabel($label);
+        $this->assertEquals($label, $task->getLabel());
+    }
+
+    public function testGetType()
+    {
+        $type = 'bar';
+        $task = new JsonTask('invocable/Action', []);
+        $task->setType($type);
+        $this->assertEquals($type, $task->getType());
+    }
+
+    public function testSetType()
+    {
+        $type = 'bar';
+        $task = new JsonTask('invocable/Action', []);
+        $this->assertEquals(null, $task->getType());
+        $task->setType($type);
+        $this->assertEquals($type, $task->getType());
+    }
+
     public function testGetInvocable()
     {
         $task = new JsonTask('invocable/Action', []);
@@ -121,7 +155,8 @@ class JsonTaskTest extends PHPUnit_Framework_TestCase
         $task = new JsonTask(new TestAction(), $params);
         $task->setStatus(JsonTask::STATUS_CREATED);
         $task->setId(1);
-        $task->setReport('report');
+        $report = 'test';
+        $task->setReport($report);
 
 
         $serialized = json_encode($task);
@@ -130,7 +165,7 @@ class JsonTaskTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($params, $restoredTask->getParameters());
         $this->assertEquals('TestAction', $restoredTask->getInvocable());
         $this->assertEquals(1, $restoredTask->getId());
-        $this->assertEquals('report', $restoredTask->getReport());
+        $this->assertEquals($report, $restoredTask->getReport());
         $this->assertEquals(JsonTask::STATUS_CREATED, $restoredTask->getStatus());
     }
 }
