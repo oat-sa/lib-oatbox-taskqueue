@@ -66,7 +66,6 @@ class RdsQueueTest extends PHPUnit_Framework_TestCase
     {
         $queue = $this->getInstance();
         $params = ['foo' => 'bar', 2, 'three'];
-        $report = 'test report';
 
         $createdTask = $queue->createTask('invocable/Action', $params);
         $taskId = $createdTask->getId();
@@ -74,11 +73,33 @@ class RdsQueueTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals(JsonTask::STATUS_CREATED, $task->getStatus());
 
-        $queue->updateTaskStatus($task->getId(), JsonTask::STATUS_FINISHED, $report);
+        $queue->updateTaskStatus($task->getId(), JsonTask::STATUS_FINISHED);
 
         $task = $queue->getTask($taskId);
 
         $this->assertEquals(JsonTask::STATUS_FINISHED, $task->getStatus());
+
+        $this->deleteTask($taskId);
+    }
+
+
+    public function testUpdateTaskReport()
+    {
+        $queue = $this->getInstance();
+        $params = ['foo' => 'bar', 2, 'three'];
+        $report = 'My Test';
+
+        $createdTask = $queue->createTask('invocable/Action', $params);
+        $taskId = $createdTask->getId();
+        $task = $queue->getTask($taskId);
+
+        $this->assertEquals(JsonTask::STATUS_CREATED, $task->getStatus());
+        $this->assertEquals(null, $task->getReport());
+
+        $queue->updateTaskReport($task->getId(), $report);
+
+        $task = $queue->getTask($taskId);
+
         $this->assertEquals($report, $task->getReport());
 
         $this->deleteTask($taskId);

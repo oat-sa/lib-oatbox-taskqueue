@@ -50,7 +50,10 @@ class JsonTask extends AbstractTask implements \JsonSerializable, Task
             'id'        => $this->getId(),
             'status'    => $this->getStatus(),
             'report'    => $this->getReport(),
+            'label'     => $this->getLabel(),
+            'type'     => $this->getType(),
             'added'     => $this->getCreationDate(),
+            'owner'     => $this->getOwner(),
         ];
     }
     
@@ -63,7 +66,13 @@ class JsonTask extends AbstractTask implements \JsonSerializable, Task
     public static function restore($data)
     {
         $taskData = json_decode($data, true);
+
+        if (!isset($taskData['invocable'], $taskData['params'])){
+            return null;
+        }
+
         $task = new self($taskData['invocable'], $taskData['params']);
+
         if (isset($taskData['report'])) {
             $task->setReport($taskData['report']);
         }
@@ -79,6 +88,16 @@ class JsonTask extends AbstractTask implements \JsonSerializable, Task
         if (isset($taskData['owner'])) {
             $task->setOwner($taskData['owner']);
         }
+        if (isset($taskData['label'])) {
+            $task->setLabel($taskData['label']);
+        }
+        if (isset($taskData['type'])) {
+            $task->setType($taskData['type']);
+        }
+        if (isset($taskData['added'])) {
+            $task->setType($taskData['added']);
+        }
+
         return $task;
     }
 }
