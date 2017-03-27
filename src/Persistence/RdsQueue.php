@@ -21,12 +21,13 @@
 namespace oat\Taskqueue\Persistence;
 
 use oat\oatbox\service\ConfigurableService;
+use oat\oatbox\task\TaskPayload;
 use oat\Taskqueue\Action\TaskQueueSearch;
 use oat\Taskqueue\JsonTask;
 use oat\oatbox\task\Task;
 use oat\oatbox\task\Queue;
 
-class RdsQueue extends ConfigurableService implements Queue
+class RdsQueue extends ConfigurableService implements Queue, TaskPayload
 {
     const QUEUE_TABLE_NAME = 'queue';
     
