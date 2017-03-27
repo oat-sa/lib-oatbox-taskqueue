@@ -26,6 +26,7 @@ use oat\oatbox\task\AbstractTaskPayload;
 use oat\oatbox\task\Task;
 use oat\tao\model\datatable\DatatableRequest as DatatableRequestInterface;
 use oat\tao\model\datatable\implementation\DatatableRequest;
+use oat\Taskqueue\JsonTask;
 use oat\Taskqueue\Persistence\RdsQueue;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorAwareTrait;
@@ -133,7 +134,12 @@ class TaskQueueSearch extends AbstractTaskPayload implements ServiceLocatorAware
         $query .= $this->setSort();
         $query .= $this->setLimit();
         $stmt = $this->persistence->query($query);
-        return $stmt->fetchAll();
+
+        $tasks = [];
+        foreach ($stmt as $taskData){
+            $tasks[] = JsonTask::restore($taskData[RdsQueue::QUEUE_TASK]);
+        }
+        return $tasks;
     }
 
     protected function count() {
