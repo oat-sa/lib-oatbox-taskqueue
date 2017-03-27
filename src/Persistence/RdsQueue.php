@@ -69,6 +69,7 @@ class RdsQueue extends ConfigurableService implements Queue, TaskPayload
         $task->setId($id);
         $task->setStatus(Task::STATUS_CREATED);
         $task->setCreationDate($now);
+        $task->setLabel($label);
 
         $query = 'INSERT INTO '.self::QUEUE_TABLE_NAME.' ('
             .self::QUEUE_ID .', '.self::QUEUE_OWNER.', ' .self::QUEUE_LABEL.', ' .self::QUEUE_TYPE.', ' . self::QUEUE_TASK.', '.self::QUEUE_STATUS.', '.self::QUEUE_ADDED.', '.self::QUEUE_UPDATED.') '
