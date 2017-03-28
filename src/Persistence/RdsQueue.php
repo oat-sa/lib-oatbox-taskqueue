@@ -21,7 +21,7 @@
 namespace oat\Taskqueue\Persistence;
 
 use oat\oatbox\service\ConfigurableService;
-use oat\oatbox\task\TaskPayload;
+use oat\tao\model\datatable\TaskPayload;
 use oat\Taskqueue\Action\TaskQueueSearch;
 use oat\Taskqueue\JsonTask;
 use oat\oatbox\task\Task;

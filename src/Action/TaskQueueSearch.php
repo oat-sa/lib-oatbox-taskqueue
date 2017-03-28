@@ -22,8 +22,8 @@ namespace oat\Taskqueue\Action;
 
 
 use oat\oatbox\service\ServiceManager;
-use oat\oatbox\task\AbstractTaskPayload;
 use oat\oatbox\task\Task;
+use oat\tao\model\datatable\AbstractTaskPayload;
 use oat\tao\model\datatable\DatatableRequest as DatatableRequestInterface;
 use oat\tao\model\datatable\implementation\DatatableRequest;
 use oat\Taskqueue\JsonTask;
