@@ -21,12 +21,13 @@
 namespace oat\Taskqueue\Persistence;
 
 use oat\oatbox\service\ConfigurableService;
+use oat\tao\model\datatable\TaskPayload;
 use oat\Taskqueue\Action\TaskQueueSearch;
 use oat\Taskqueue\JsonTask;
 use oat\oatbox\task\Task;
 use oat\oatbox\task\Queue;
 
-class RdsQueue extends ConfigurableService implements Queue
+class RdsQueue extends ConfigurableService implements Queue, TaskPayload
 {
     const QUEUE_TABLE_NAME = 'queue';
     
@@ -68,6 +69,7 @@ class RdsQueue extends ConfigurableService implements Queue
         $task->setId($id);
         $task->setStatus(Task::STATUS_CREATED);
         $task->setCreationDate($now);
+        $task->setLabel($label);
 
         $query = 'INSERT INTO '.self::QUEUE_TABLE_NAME.' ('
             .self::QUEUE_ID .', '.self::QUEUE_OWNER.', ' .self::QUEUE_LABEL.', ' .self::QUEUE_TYPE.', ' . self::QUEUE_TASK.', '.self::QUEUE_STATUS.', '.self::QUEUE_ADDED.', '.self::QUEUE_UPDATED.') '

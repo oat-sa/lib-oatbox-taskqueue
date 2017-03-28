@@ -22,26 +22,19 @@ namespace oat\Taskqueue\Action;
 
 
 use oat\oatbox\service\ServiceManager;
-use oat\oatbox\task\Queue;
 use oat\oatbox\task\Task;
-use oat\tao\model\datatable\DatatablePayload;
+use oat\tao\model\datatable\AbstractTaskPayload;
 use oat\tao\model\datatable\DatatableRequest as DatatableRequestInterface;
 use oat\tao\model\datatable\implementation\DatatableRequest;
 use oat\Taskqueue\JsonTask;
-use oat\Taskqueue\Persistence\QueueIterator;
 use oat\Taskqueue\Persistence\RdsQueue;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorAwareTrait;
 
-class TaskQueueSearch implements DatatablePayload , ServiceLocatorAwareInterface
+class TaskQueueSearch extends AbstractTaskPayload implements ServiceLocatorAwareInterface
 {
 
     use ServiceLocatorAwareTrait;
-
-    /**
-     * @var DatatableRequest
-     */
-    protected $request;
 
     /**
      * @var \common_persistence_SqlPersistence
@@ -142,7 +135,11 @@ class TaskQueueSearch implements DatatablePayload , ServiceLocatorAwareInterface
         $query .= $this->setLimit();
         $stmt = $this->persistence->query($query);
 
-        return $stmt->fetchAll();
+        $tasks = [];
+        foreach ($stmt as $taskData){
+            $tasks[] = JsonTask::restore($taskData[RdsQueue::QUEUE_TASK]);
+        }
+        return $tasks;
     }
 
     protected function count() {
@@ -157,42 +154,5 @@ class TaskQueueSearch implements DatatablePayload , ServiceLocatorAwareInterface
         }
         return $taskCount['cpt'];
     }
-
-
-    public function getPayload() {
-
-        $iterator = $this->search();
-
-        $taskList = [];
-
-        foreach ($iterator as $taskData) {
-            $taskList[] =
-                [
-                    "id"           => $taskData['id'],
-                    "label"        => $taskData['label'],
-                    "creationDate" => strtotime($taskData['added']),
-                    "status"       => $taskData['status'],
-                    "report"       => json_decode($taskData['report'], true),
-                ];
-        }
-        $countTotal = $this->count();
-        $rows = $this->request->getRows();
-        $data = [
-            'rows'    => $rows,
-            'page'    => $this->request->getPage(),
-            'amount' => count($taskList),
-            'total'   => ceil($countTotal/$rows),
-            'data' => $taskList,
-        ];
-
-        return $data;
-
-    }
-
-    public function jsonSerialize()
-    {
-        return $this->getPayload();
-    }
-
 
 }

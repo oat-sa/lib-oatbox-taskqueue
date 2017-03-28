@@ -52,11 +52,16 @@ class JsonTask extends AbstractTask implements \JsonSerializable, Task
             'report'    => $this->getReport(),
             'label'     => $this->getLabel(),
             'type'     => $this->getType(),
-            'added'     => $this->getCreationDate(),
+            'added'     => date('Y-m-d H:i:s',$this->getCreationDate()),
             'owner'     => $this->getOwner(),
         ];
     }
-    
+
+    public function getCreationDate()
+    {
+        return strtotime($this->creationDate);
+    }
+
     /**
      * Restore a task
      * 
