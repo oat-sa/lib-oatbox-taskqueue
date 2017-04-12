@@ -284,6 +284,7 @@ class QueueIteratorTest extends PHPUnit_Framework_TestCase
     {
         $query = 'SELECT * FROM ' . RdsQueue::QUEUE_TABLE_NAME .
             ' WHERE '.RdsQueue::QUEUE_STATUS . '=?' .
+            ' AND ' . RdsQueue::QUEUE_ID . '<=?' .
             ' AND ' . RdsQueue::QUEUE_ID . '>?' .
             ' AND ' . RdsQueue::QUEUE_ID . " LIKE '%_test_record'" .
             ' ORDER BY '.RdsQueue::QUEUE_ADDED .

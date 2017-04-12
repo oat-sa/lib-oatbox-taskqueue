@@ -68,17 +68,31 @@ class QueueIterator implements \Iterator
         $this->query = $query;
         $this->params = $params;
 
+        if (empty($this->params)) {
+            $this->params = [
+                Task::STATUS_CREATED
+            ];
+        }
+
+        $lastIdStmt = $this->persistence->query(
+            'SELECT * FROM ' . RdsQueue::QUEUE_TABLE_NAME .
+            ' WHERE '.RdsQueue::QUEUE_STATUS . ' = ?' .
+            ' ORDER BY '.RdsQueue::QUEUE_ADDED . ' DESC' .
+            ' LIMIT 1', $this->params
+        );
+        $lastIdResult = $lastIdStmt->fetch(\PDO::FETCH_ASSOC);
+
+        $this->params[] = $lastIdResult[RdsQueue::QUEUE_ID];
+
         if ($this->query === null) {
             $this->query = 'SELECT * FROM ' . RdsQueue::QUEUE_TABLE_NAME .
                            ' WHERE '.RdsQueue::QUEUE_STATUS . ' = ?' .
+                             ' AND ' . RdsQueue::QUEUE_ID . '<=?' .
                              ' AND ' . RdsQueue::QUEUE_ID . '>?' .
                            ' ORDER BY '.RdsQueue::QUEUE_ADDED .
                            ' LIMIT 1';
         }
 
-        if (empty($this->params)) {
-            $this->params = [Task::STATUS_CREATED];
-        }
         $this->rewind();
     }
 
