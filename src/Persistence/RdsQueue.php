@@ -25,8 +25,9 @@ use oat\Taskqueue\Action\TaskQueueSearch;
 use oat\Taskqueue\JsonTask;
 use oat\oatbox\task\Task;
 use oat\oatbox\task\Queue;
+use oat\oatbox\task\AbstractQueue;
 
-class RdsQueue extends ConfigurableService implements Queue
+class RdsQueue extends AbstractQueue
 {
     const QUEUE_TABLE_NAME = 'queue';
     
