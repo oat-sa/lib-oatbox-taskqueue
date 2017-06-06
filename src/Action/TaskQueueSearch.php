@@ -24,6 +24,7 @@ namespace oat\Taskqueue\Action;
 use oat\oatbox\service\ServiceManager;
 use oat\oatbox\task\Queue;
 use oat\oatbox\task\Task;
+use oat\oatbox\task\TaskInterface\TaskPayLoad;
 use oat\tao\model\datatable\DatatablePayload;
 use oat\tao\model\datatable\DatatableRequest as DatatableRequestInterface;
 use oat\tao\model\datatable\implementation\DatatableRequest;
@@ -33,7 +34,7 @@ use oat\Taskqueue\Persistence\RdsQueue;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorAwareTrait;
 
-class TaskQueueSearch implements DatatablePayload , ServiceLocatorAwareInterface
+class TaskQueueSearch implements TaskPayLoad
 {
 
     use ServiceLocatorAwareTrait;

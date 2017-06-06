@@ -21,12 +21,13 @@
 namespace oat\Taskqueue\Persistence;
 
 use oat\oatbox\service\ConfigurableService;
+use oat\oatbox\task\AbstractQueue;
 use oat\Taskqueue\Action\TaskQueueSearch;
 use oat\Taskqueue\JsonTask;
 use oat\oatbox\task\Task;
 use oat\oatbox\task\Queue;
 
-class RdsQueue extends ConfigurableService implements Queue
+class RdsQueue extends AbstractQueue
 {
     const QUEUE_TABLE_NAME = 'queue';
     
@@ -158,15 +159,8 @@ class RdsQueue extends ConfigurableService implements Queue
     {
         return new QueueIterator($this->getPersistence());
     }
-    
-    /**
-     * @return \common_persistence_SqlPersistence
-     */
-    protected function getPersistence()
-    {
-        $persistenceManager = $this->getServiceManager()->get(\common_persistence_Manager::SERVICE_KEY);
-        return $persistenceManager->getPersistenceById($this->getOption(self::OPTION_PERSISTENCE));
-    }
+
+
 
     /**
      * @return TaskQueueSearch
