@@ -25,6 +25,7 @@ use oat\oatbox\service\ServiceManager;
 use oat\oatbox\task\Queue;
 use oat\oatbox\task\Task;
 use oat\oatbox\task\TaskInterface\TaskPayLoad;
+use oat\oatbox\task\TaskInterface\TaskPersistenceInterface;
 use oat\tao\model\datatable\DatatablePayload;
 use oat\tao\model\datatable\DatatableRequest as DatatableRequestInterface;
 use oat\tao\model\datatable\implementation\DatatableRequest;
@@ -52,10 +53,12 @@ class TaskQueueSearch implements TaskPayLoad
     protected $currentUserId;
 
     /**
-     * DatatablePayload constructor.
+     * TaskQueueSearch constructor.
+     * @param TaskPersistenceInterface $persistence
+     * @param null $currentUserId
      * @param DatatableRequestInterface|null $request
      */
-    public function __construct(\common_persistence_SqlPersistence $persistence , $currentUserId = null , DatatableRequestInterface $request = null)
+    public function __construct(TaskPersistenceInterface $persistence , $currentUserId = null , DatatableRequestInterface $request = null)
     {
         $this->setServiceLocator(ServiceManager::getServiceManager());
         $this->persistence = $persistence;
@@ -70,61 +73,17 @@ class TaskQueueSearch implements TaskPayLoad
 
 
 
-    protected function setQueryFilter($name , $value) {
-        if(is_array($value)) {
-            return  ' ' . $name . ' IN (\''. implode('\' , \'' , $value).'\') ';
-        }
-        return $name . ' = \'' . $value . '\' ';
-    }
-
-
-    protected function setQueryParameters($params = []) {
-
-        $filters = [];
-        foreach ($params as $name => $value) {
-            $filters[] = $this->setQueryFilter($name , $value);
-        }
-
-        return implode(' AND ' , $filters );
-
-    }
-
-    protected function setSort()
-    {
-        $sortBy    = $this->request->getSortBy();
-        $sortOrder = $this->request->getSortOrder();
-
-        if(!empty($sortBy)) {
-            return  ' ORDER BY ' . $sortBy . ' ' . $sortOrder . ' ';
-        }
-        return ' ORDER BY ' . RdsQueue::QUEUE_STATUS . ' DESC ' ;
-    }
-
-    protected function setLimit() {
-
-        $page = $this->request->getPage();
-        $rows = $this->request->getRows();
-
-        $offset = $rows * ($page-1);
-
-        $query = ' LIMIT ' . ($rows);
-
-        if($offset > 0) {
-            $query .= ' OFFSET ' . $offset ;
-        }
-
-        return $query;
-    }
-
     protected function getFilters() {
         $params = $this->request->getFilters();
 
-        $params['status'] = [
-            Task::STATUS_CREATED,
-            Task::STATUS_STARTED,
-            Task::STATUS_RUNNING,
-            Task::STATUS_FINISHED,
-        ];
+        if(!array_key_exists('status' , $params) || empty($params['status'])) {
+            $params['status'] = [
+                Task::STATUS_CREATED,
+                Task::STATUS_STARTED,
+                Task::STATUS_RUNNING,
+                Task::STATUS_FINISHED,
+            ];
+        }
         if(!empty($this->currentUserId)) {
             $params['owner'] = $this->currentUserId;
         }
@@ -133,30 +92,21 @@ class TaskQueueSearch implements TaskPayLoad
     }
 
     protected function search()  {
+        $params    = $this->getFilters();
 
-        $params = $this->getFilters();
+        $page      = $this->request->getPage();
+        $rows      = $this->request->getRows();
 
-        $query = 'SELECT * FROM ' . RdsQueue::QUEUE_TABLE_NAME . ' WHERE ';
+        $sortBy    = $this->request->getSortBy();
+        $sortOrder = $this->request->getSortOrder();
 
-        $query .= $this->setQueryParameters( $params);
-        $query .= $this->setSort();
-        $query .= $this->setLimit();
-        $stmt = $this->persistence->query($query);
 
-        return $stmt->fetchAll();
+        return $this->persistence->search($params, $rows, $page , $sortBy , $sortOrder );
     }
 
-    protected function count() {
-        $params = $this->getFilters();
-        $query = 'SELECT count(*) as cpt FROM ' . RdsQueue::QUEUE_TABLE_NAME . ' WHERE ';
-        $query .= $this->setQueryParameters($params);
-
-        $result = $this->persistence->query($query);
-        $taskCount = $result->fetch();
-        if($taskCount === false) {
-            return 0;
-        }
-        return $taskCount['cpt'];
+    public function count() {
+        $params    = $this->getFilters();
+        return $this->persistence->count($params);
     }
 
 

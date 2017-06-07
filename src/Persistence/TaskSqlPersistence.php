@@ -9,10 +9,9 @@
 namespace oat\Taskqueue\Persistence;
 
 
-use oat\oatbox\task\implementation\TaskList;
-use oat\oatbox\task\Queue;
 use oat\oatbox\task\Task;
 use oat\oatbox\task\TaskInterface\TaskPersistenceInterface;
+use oat\Taskqueue\JsonTask;
 use Zend\ServiceManager\ServiceLocatorAwareTrait;
 
 class TaskSqlPersistence implements TaskPersistenceInterface
@@ -45,13 +44,25 @@ class TaskSqlPersistence implements TaskPersistenceInterface
 
     const QUEUE_UPDATED = 'updated';
 
-    const OPTION_PERSISTENCE = 'persistence';
+    protected $persistenceName = 'persistence';
+
+    public function __construct($config  = array()) {
+        if(isset($config['persistence'])) {
+            $this->persistenceName =  $config['persistence'];
+        }
+    }
 
     /**
      * @return \common_persistence_SqlPersistence
      */
-    protected function getPersistence() {
-        return $this->getPersistence();
+    protected function getPersistence()
+    {
+        if(is_null($this->persistence)) {
+            $persistenceManager = $this->getServiceLocator()->get(\common_persistence_Manager::SERVICE_ID);
+            $this->persistence =  $persistenceManager->getPersistenceById($this->persistenceName);
+        }
+
+        return $this->persistence;
     }
 
     public function get($taskId)
@@ -62,7 +73,7 @@ class TaskSqlPersistence implements TaskPersistenceInterface
         $query = $this->getPersistence()->query($statement, array($taskId));
         $data = $query->fetch(\PDO::FETCH_ASSOC);
         if ($data) {
-            $task = Task::restore($data[self::QUEUE_TASK]);
+            $task = JsonTask::restore($data);
         }
         return $task;
     }
@@ -96,9 +107,63 @@ class TaskSqlPersistence implements TaskPersistenceInterface
         return $task;
     }
 
-    public function search(array $filters, $limit, $offset)
+    protected function setQueryFilter($name , $value) {
+        if(is_array($value)) {
+            return  ' ' . $name . ' IN (\''. implode('\' , \'' , $value).'\') ';
+        }
+        return $name . ' = \'' . $value . '\' ';
+    }
+
+
+    protected function setQueryParameters($params = []) {
+
+        $filters = [];
+        foreach ($params as $name => $value) {
+            $filters[] = $this->setQueryFilter($name , $value);
+        }
+
+        return implode(' AND ' , $filters );
+
+    }
+
+    protected function setSort($sortBy , $sortOrder)
     {
-        // TODO: Implement search() method.
+        if(empty($sortBy)) {
+            return '';
+        }
+        if(!empty($sortBy)) {
+            return  ' ORDER BY ' . $sortBy . ' ' . $sortOrder . ' ';
+        }
+        return ' ORDER BY ' . RdsQueue::QUEUE_STATUS . ' DESC ' ;
+    }
+
+    protected function setLimit($page , $rows) {
+        if(empty($page)) {
+            return '';
+        }
+        $offset = $rows * ($page-1);
+
+        $query = ' LIMIT ' . ($rows);
+
+        if($offset > 0) {
+            $query .= ' OFFSET ' . $offset ;
+        }
+
+        return $query;
+    }
+
+    public function search(array $filterTask, $rows = null, $page = null , $sortBy = null , $sortOrder = null)
+    {
+
+        $query = 'SELECT * FROM ' . RdsQueue::QUEUE_TABLE_NAME . ' WHERE ';
+
+        $query .= $this->setQueryParameters( $filterTask);
+        $query .= $this->setSort($sortBy , $sortOrder);
+        $query .= $this->setLimit($page , $rows);
+        $stmt = $this->persistence->query($query);
+
+        $list = $stmt->fetchAll();
+        return new QueueIterator($list);
     }
 
     public function has($taskId)
@@ -112,7 +177,7 @@ class TaskSqlPersistence implements TaskPersistenceInterface
 
     public function update($taskId, $status)
     {
-        $task = $this->getTask($taskId);
+        $task = $this->get($taskId);
         $task->setStatus($status);
         $platform = $this->getPersistence()->getPlatForm();
         $statement = 'UPDATE '.self::QUEUE_TABLE_NAME.' SET '.
@@ -164,7 +229,7 @@ class TaskSqlPersistence implements TaskPersistenceInterface
             'WHERE ' . self::QUEUE_STATUS . ' != ?';
         $query = $this->getPersistence()->query($statement, array(Task::STATUS_ARCHIVED));
         $data = $query->fetch(\PDO::FETCH_ASSOC);
-        return new TaskList($data);
+        return new QueueIterator($data);
     }
 
 
