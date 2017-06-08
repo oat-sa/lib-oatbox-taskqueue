@@ -69,7 +69,7 @@ class InitRdsQueue extends \common_ext_action_InstallAction
 
         $queue = new RdsQueue(
             [
-                'payload'     => \oat\Taskqueue\ActionTaskQueueSearch::class,
+                'payload'     => \oat\oatbox\task\implementation\TaskQueuePayload::class,
                 'runner'      => \oat\oatbox\task\TaskRunner::class,
                 'persistence' => \oat\Taskqueue\Persistence\TaskSqlPersistence::class,
                 'config'      => [RdsQueue::OPTION_PERSISTENCE => $persistenceId],
