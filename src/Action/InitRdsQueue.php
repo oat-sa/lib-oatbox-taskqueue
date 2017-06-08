@@ -67,7 +67,14 @@ class InitRdsQueue extends \common_ext_action_InstallAction
             \common_Logger::i('Database Schema already up to date.');
         }
 
-        $queue = new RdsQueue(array(RdsQueue::OPTION_PERSISTENCE => $persistenceId));
+        $queue = new RdsQueue(
+            [
+                'payload'     => \oat\Taskqueue\ActionTaskQueueSearch::class,
+                'runner'      => \oat\oatbox\task\TaskRunner::class,
+                'persistence' => \oat\Taskqueue\Persistence\TaskSqlPersistence::class,
+                'config'      => [RdsQueue::OPTION_PERSISTENCE => $persistenceId],
+            ]
+        );
         $queue->setServiceLocator($this->getServiceLocator());
         $this->getServiceLocator()->register(Queue::CONFIG_ID, $queue);
         

@@ -29,9 +29,6 @@ use oat\oatbox\task\TaskInterface\TaskPersistenceInterface;
 use oat\tao\model\datatable\DatatablePayload;
 use oat\tao\model\datatable\DatatableRequest as DatatableRequestInterface;
 use oat\tao\model\datatable\implementation\DatatableRequest;
-use oat\Taskqueue\JsonTask;
-use oat\Taskqueue\Persistence\QueueIterator;
-use oat\Taskqueue\Persistence\RdsQueue;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorAwareTrait;
 
