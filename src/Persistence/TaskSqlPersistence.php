@@ -160,7 +160,7 @@ class TaskSqlPersistence implements TaskPersistenceInterface
         $query .= $this->setQueryParameters( $filterTask);
         $query .= $this->setSort($sortBy , $sortOrder);
         $query .= $this->setLimit($page , $rows);
-        $stmt = $this->persistence->query($query);
+        $stmt = $this->getPersistence()->query($query);
 
         $list = $stmt->fetchAll();
         return new QueueIterator($list);
