@@ -20,136 +20,16 @@
  */
 namespace oat\Taskqueue\Persistence;
 
-use oat\Taskqueue\JsonTask;
+use oat\oatbox\task\implementation\TaskList;
 use oat\oatbox\task\Task;
+use oat\Taskqueue\JsonTask;
 
-class QueueIterator implements \Iterator
+class QueueIterator extends TaskList
 {
-    /**
-     * @var \common_persistence_SqlPersistence
-     */
-    private $persistence;
 
-    /**
-     * Query to iterator over
-     *
-     * @var string
-     */
-    private $query;
-
-    /**
-     * Query parameters
-     *
-     * @var array
-     */
-    private $params = [];
-
-    /**
-     * @var JsonTask
-     */
-    private $currentTask = null;
-
-    /**
-     * Id of the current instance
-     *
-     * @var int
-     */
-    private $currentResult = null;
-
-    /**
-     * QueueIterator constructor.
-     * @param \common_persistence_SqlPersistence $persistence
-     * @param null $query
-     * @param array $params
-     */
-    public function __construct(\common_persistence_SqlPersistence $persistence, $query = null, array $params = [])
-    {
-        $this->persistence = $persistence;
-        $this->query = $query;
-        $this->params = $params;
-
-        if ($this->query === null) {
-            $this->query = 'SELECT * FROM ' . RdsQueue::QUEUE_TABLE_NAME .
-                           ' WHERE '.RdsQueue::QUEUE_STATUS . ' = ?' .
-                             ' AND ' . RdsQueue::QUEUE_ID . '>?' .
-                           ' ORDER BY '.RdsQueue::QUEUE_ADDED .
-                           ' LIMIT 1';
-        }
-
-        if (empty($this->params)) {
-            $this->params = [Task::STATUS_CREATED];
-        }
-        $this->rewind();
-    }
-
-    /**
-     * Load the next task
-     */
-    public function next()
-    {
-        if ($this->valid()) {
-            $last = $this->key();
-            $this->load($last + 1);
-        }
-    }
-
-    /**
-     * @return bool
-     */
-    public function valid()
-    {
-        return $this->currentTask !== null;
-    }
-
-    /**
-     * return JsonTask;
-     */
     public function current()
     {
-        return $this->currentTask;
+        return JsonTask::restore(parent::current());
     }
 
-    /**
-     * @return int
-     */
-    public function key()
-    {
-        return $this->currentResult;
-    }
-
-    /**
-     * Load first task
-     */
-    public function rewind()
-    {
-        $this->load(0);
-    }
-
-    /**
-     * @param int $key
-     */
-    protected function load($key)
-    {
-        $params = $this->params;
-
-        $currentTask = $this->current();
-
-        if ($key === 0) {
-            $params[] = 0; //id
-        } else {
-            $params[] = $currentTask->getId();
-        }
-
-        $result = $this->persistence->query($this->query, $params);
-        $taskData = $result->fetch(\PDO::FETCH_ASSOC);
-
-        if (empty($taskData)) {
-            $task = null;
-        } else {
-            $task = JsonTask::restore($taskData[RdsQueue::QUEUE_TASK]);
-        }
-
-        $this->currentResult = $key;
-        $this->currentTask = $task;
-    }
 }

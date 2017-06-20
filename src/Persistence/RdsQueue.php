@@ -21,12 +21,16 @@
 namespace oat\Taskqueue\Persistence;
 
 use oat\oatbox\service\ConfigurableService;
+use oat\oatbox\task\AbstractQueue;
+use oat\oatbox\task\implementation\SyncTask;
+use oat\oatbox\task\implementation\TaskList;
 use oat\Taskqueue\Action\TaskQueueSearch;
 use oat\Taskqueue\JsonTask;
 use oat\oatbox\task\Task;
 use oat\oatbox\task\Queue;
+use TheSeer\fDOM\fDOMDocument;
 
-class RdsQueue extends ConfigurableService implements Queue
+class RdsQueue extends AbstractQueue
 {
     const QUEUE_TABLE_NAME = 'queue';
     
@@ -56,123 +60,27 @@ class RdsQueue extends ConfigurableService implements Queue
      * @param boolean $repeatedly Whether task created repeatedly (for example when execution of task was failed and task puts to the queue again).
      * @param null $label
      * @param null $type
-     * @return JsonTask
+     * @return Task|false
      */
     public function createTask($action, $parameters, $repeatedly = false, $label = null , $type = null)
     {
-        $task = new JsonTask($action, $parameters);
-        $id = \common_Utils::getNewUri();
-        $platform = $this->getPersistence()->getPlatForm();
-        $now = $platform->getNowExpression();
-
-        $task->setId($id);
-        $task->setStatus(Task::STATUS_CREATED);
-        $task->setCreationDate($now);
-
-        $query = 'INSERT INTO '.self::QUEUE_TABLE_NAME.' ('
-            .self::QUEUE_ID .', '.self::QUEUE_OWNER.', ' .self::QUEUE_LABEL.', ' .self::QUEUE_TYPE.', ' . self::QUEUE_TASK.', '.self::QUEUE_STATUS.', '.self::QUEUE_ADDED.', '.self::QUEUE_UPDATED.') '
-            .'VALUES  (?, ?, ?, ?, ?, ? , ? , ?)';
-
-        $persistence = $this->getPersistence();
-        $persistence->exec($query, array(
-            $task->getId(),
-            \common_session_SessionManager::getSession()->getUser()->getIdentifier(),
-            $label,
-            $type,
-            json_encode($task),
-            $task->getStatus(),
-            $now,
-            $now
-        ));
-
-        return $task;
-    }
-
-    /**
-     * @param string $taskId
-     * @param $stateId
-     */
-    public function updateTaskStatus($taskId, $stateId)
-    {
-        $task = $this->getTask($taskId);
-        $task->setStatus($stateId);
-        $platform = $this->getPersistence()->getPlatForm();
-        $statement = 'UPDATE '.self::QUEUE_TABLE_NAME.' SET '.
-            self::QUEUE_STATUS.' = ?, '.
-            self::QUEUE_TASK.' = ?, '.
-            self::QUEUE_UPDATED.' = ? '.
-            'WHERE '.self::QUEUE_ID.' = ?';
-
-        $this->getPersistence()->exec($statement, [
-            $stateId,
-            json_encode($task),
-            $platform->getNowExpression(),
-            $taskId
-        ]);
-    }
-
-
-    /**
-     * @param string $taskId
-     * @param \common_report_Report $report
-     */
-    public function updateTaskReport($taskId, $report)
-    {
-        $task = $this->getTask($taskId);
-        $task->setReport($report);
-
-        $platform = $this->getPersistence()->getPlatForm();
-        $statement = 'UPDATE '.self::QUEUE_TABLE_NAME.' SET '.
-            self::QUEUE_UPDATED.' = ?, '.
-            self::QUEUE_TASK.' = ?, '.
-            self::QUEUE_REPORT.' = ? '.
-            'WHERE '.self::QUEUE_ID.' = ?';
-
-        $this->getPersistence()->exec($statement, [
-            $platform->getNowExpression(),
-            json_encode($task),
-            json_encode($report),
-            $taskId
-        ]);
-    }
-
-    /**
-     * Get task instance by id
-     * @param $taskId
-     * @return null|JsonTask
-     */
-    public function getTask($taskId)
-    {
-        $task = null;
-        $statement = 'SELECT * FROM ' . self::QUEUE_TABLE_NAME . ' ' .
-            'WHERE ' . self::QUEUE_ID . ' = ?';
-        $query = $this->getPersistence()->query($statement, array($taskId));
-        $data = $query->fetch(\PDO::FETCH_ASSOC);
-        if ($data) {
-            $task = JsonTask::restore($data[self::QUEUE_TASK]);
+        if ($repeatedly) {
+            \common_Logger::w("Repeated call of action'; Execution canceled.");
+            return false;
         }
+        $task = new SyncTask($action, $parameters);
+        $task->setLabel($label);
+        $task->setType($type);
+        $this->getPersistence()->add($task);
         return $task;
     }
 
+    /**
+     * @return TaskList
+     */
     public function getIterator()
     {
-        return new QueueIterator($this->getPersistence());
-    }
-    
-    /**
-     * @return \common_persistence_SqlPersistence
-     */
-    protected function getPersistence()
-    {
-        $persistenceManager = $this->getServiceManager()->get(\common_persistence_Manager::SERVICE_KEY);
-        return $persistenceManager->getPersistenceById($this->getOption(self::OPTION_PERSISTENCE));
+        return $this->getPersistence()->search([self::QUEUE_STATUS => Task::STATUS_CREATED]);
     }
 
-    /**
-     * @return TaskQueueSearch
-     */
-    public function getPayload($currentUserId)
-    {
-        return new TaskQueueSearch($this->getPersistence() ,$currentUserId);
-    }
 }

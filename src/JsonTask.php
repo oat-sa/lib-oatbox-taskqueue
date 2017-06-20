@@ -21,83 +21,55 @@
 namespace oat\Taskqueue;
 
 use oat\oatbox\task\AbstractTask;
+use oat\oatbox\task\implementation\SyncTask;
 use oat\oatbox\task\Task;
 
-class JsonTask extends AbstractTask implements \JsonSerializable, Task
+class JsonTask extends SyncTask
 {
-    public function __construct($invocable, $params)
-    {
-        $this->setInvocable($invocable);
-        $this->setParameters($params);
-    }
-    
-    // Serialization
-    
-    /**
-     * (non-PHPdoc)
-     * @see JsonSerializable::jsonSerialize()
-     */
-    public function jsonSerialize()
-    {
-        $invocable = $this->getInvocable();
-        if (is_object($invocable) && !$invocable instanceof \JsonSerializable) {
-            $invocable = get_class($invocable);
-        }
 
-        return [
-            'invocable' => $invocable,
-            'params'    => $this->getParameters(),
-            'id'        => $this->getId(),
-            'status'    => $this->getStatus(),
-            'report'    => $this->getReport(),
-            'label'     => $this->getLabel(),
-            'type'     => $this->getType(),
-            'added'     => $this->getCreationDate(),
-            'owner'     => $this->getOwner(),
-        ];
-    }
-    
     /**
      * Restore a task
-     * 
+     *
      * @param array $data
-     * @return \oat\Taskqueue\JsonTask
+     * @return Task
      */
-    public static function restore($data)
+    public static function restore(array $data)
     {
-        $taskData = json_decode($data, true);
+        $data = json_decode($data['task'], true);
 
-        if (!isset($taskData['invocable'], $taskData['params'])){
+        if (!isset($data['invocable'], $data['params'])){
             return null;
         }
-
-        $task = new self($taskData['invocable'], $taskData['params']);
-
-        if (isset($taskData['report'])) {
-            $task->setReport($taskData['report']);
+        /**
+         * @var $task Task
+         */
+        $class = self::class;
+        $task = new $class($data['invocable'], $data['params']);
+        if (isset($data['report'])) {
+            $task->setReport($data['report']);
         }
-        if (isset($taskData['status'])) {
-            $task->setStatus($taskData['status']);
+        if (isset($data['status'])) {
+            $task->setStatus($data['status']);
         }
-        if (isset($taskData['id'])) {
-            $task->setId($taskData['id']);
+        if (isset($data['id'])) {
+            $task->setId($data['id']);
         }
-        if (isset($taskData['added'])) {
-            $task->setCreationDate($taskData['added']);
+        if (isset($data['added'])) {
+            $task->setCreationDate($data['added']);
         }
-        if (isset($taskData['owner'])) {
-            $task->setOwner($taskData['owner']);
+        if (isset($data['owner'])) {
+            $task->setOwner($data['owner']);
         }
-        if (isset($taskData['label'])) {
-            $task->setLabel($taskData['label']);
+        if (isset($data['label'])) {
+            $task->setLabel($data['label']);
         }
-        if (isset($taskData['type'])) {
-            $task->setType($taskData['type']);
+        if (isset($data['type'])) {
+            $task->setType($data['type']);
         }
-        if (isset($taskData['added'])) {
-            $task->setType($taskData['added']);
+        if (isset($data['added'])) {
+            $task->setType($data['added']);
         }
-
         return $task;
     }
+
 }
