@@ -35,10 +35,9 @@ class RunTasks extends ConfigurableService implements Action
 
         $statistics = array();
         $queue = $this->getServiceManager()->get(Queue::CONFIG_ID);
-        $runner = new TaskRunner();
         $report = new Report(Report::TYPE_SUCCESS);
         foreach ($queue as $task) {
-            $subReport = $runner->run($task);
+            $subReport = $queue->runTask($task);
             $statistics[$subReport->getType()] = isset($statistics[$subReport->getType()])
                 ? $statistics[$subReport->getType()] + 1
                 : 1;
