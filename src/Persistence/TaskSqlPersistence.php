@@ -218,6 +218,11 @@ class TaskSqlPersistence implements TaskPersistenceInterface
     {
         $statement = 'SELECT COUNT(*) AS cpt FROM ' . self::QUEUE_TABLE_NAME . ' ' .
             'WHERE ' . self::QUEUE_STATUS . ' != ?';
+
+        if (!empty($params)) {
+            $statement .= ' AND '. $this->setQueryParameters($params);
+        }
+
         $query = $this->getPersistence()->query($statement, array(Task::STATUS_ARCHIVED));
         $data = $query->fetch(\PDO::FETCH_ASSOC);
         return intval($data['cpt']);
