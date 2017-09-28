@@ -72,6 +72,9 @@ class RdsQueue extends AbstractQueue
         $task->setLabel($label);
         $task->setType($type);
         $this->getPersistence()->add($task);
+
+        $this->getTaskLogService()->add($task);
+
         return $task;
     }
 
