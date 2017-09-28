@@ -66,9 +66,6 @@ class JsonTask extends SyncTask
         if (isset($data['type'])) {
             $task->setType($data['type']);
         }
-        if (isset($data['added'])) {
-            $task->setType($data['added']);
-        }
         return $task;
     }
 
