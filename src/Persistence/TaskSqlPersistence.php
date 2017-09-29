@@ -110,8 +110,12 @@ class TaskSqlPersistence implements TaskPersistenceInterface
     protected function setQueryFilter($name , $value) {
         if(is_array($value)) {
             return  ' ' . $name . ' IN (\''. implode('\' , \'' , $value).'\') ';
+        } else if (preg_match('/^(?:\s*(<>|<=|>=|<|>|=|LIKE|NOT\sLIKE))?(.*)$/', $value, $matches)) {
+            // it will catch the standard values without any operator as well
+            $value = $matches[2];
+            $op = $matches[1] ? $matches[1] : "=";
+            return  $name . ' '. $op . ' \'' . $value . '\' ';
         }
-        return $name . ' = \'' . $value . '\' ';
     }
 
 
@@ -230,10 +234,10 @@ class TaskSqlPersistence implements TaskPersistenceInterface
 
     public function getAll()
     {
-        $statement = 'SELECT COUNT(*) AS cpt FROM ' . self::QUEUE_TABLE_NAME . ' ' .
+        $statement = 'SELECT * FROM ' . self::QUEUE_TABLE_NAME . ' ' .
             'WHERE ' . self::QUEUE_STATUS . ' != ?';
         $query = $this->getPersistence()->query($statement, array(Task::STATUS_ARCHIVED));
-        $data = $query->fetch(\PDO::FETCH_ASSOC);
+        $data = $query->fetchAll(\PDO::FETCH_ASSOC);
         return new QueueIterator($data);
     }
 
